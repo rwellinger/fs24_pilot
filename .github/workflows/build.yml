@@ -1,0 +1,62 @@
+name: build
+
+# Manual only: Actions → build → "Run workflow", or `make gh-build`.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Domain/application unit tests + format/tidy on the host (no SDK).
+  check:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: brew install llvm
+
+      - name: Format, tidy, tests
+        run: make check LLVM_BIN="$(brew --prefix llvm)/bin/"
+
+  # Release build of the WASM module with Asobo's own LLVM from the SDK
+  # (Windows binaries) — stock LLVM builds are not loadable by the sim.
+  wasm:
+    runs-on: windows-2025
+    needs: check
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve SDK version
+        id: sdk
+        run: |
+          v=$(curl -sSfL https://sdk.flightsimulator.com/msfs2024/files/sdk.json \
+            | python -c 'import json,sys; print(json.load(sys.stdin)["game_versions"][0]["release_notes"][0])' | tr -d '\r')
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      # SDK files stay in the private Actions cache; they are never committed or uploaded.
+      - uses: actions/cache@v6
+        with:
+          path: sdk/${{ steps.sdk.outputs.version }}
+          key: msfs2024-sdk-windows-${{ steps.sdk.outputs.version }}
+
+      - run: scripts/fetch-sdk.sh
+
+      - name: Build package
+        env:
+          SDK_DIR: ../sdk/${{ steps.sdk.outputs.version }}
+          TOOLCHAIN: sdk
+        run: |
+          wasm/build.sh
+          python scripts/build_package.py
+
+      # Artifact = the package folder; unzip it into the Community folder.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: fs24-pilot
+          path: out/fs24-pilot/
+          if-no-files-found: error
+          retention-days: 30

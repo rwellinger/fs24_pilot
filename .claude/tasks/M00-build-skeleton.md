@@ -22,5 +22,5 @@ Any landing logic, panel.
 
 - [x] `make check` green on the Mac.
 - [x] `make package` builds on the Mac (compile check, stock LLVM).
-- [ ] `make gh-build` green; artifact contains `manifest.json`, `layout.json`, `modules/fs24-pilot.wasm`.
-- [ ] Sim PC: package in Community → Dev Mode WASM Debug shows the module loaded, console shows `[fs24-pilot] 0.1.0 ready`.
+- [x] `make gh-build` green; artifact contains `manifest.json`, `layout.json`, `modules/fs24-pilot.wasm`. — run 44479783132 (SDK 1.8.2, Asobo LLVM).
+- [x] Sim PC: package in Community → Dev Mode WASM Debug shows the module loaded, console shows `[fs24-pilot] 0.1.0 ready`. — verified 2026-11-19: WASM Debug status READY, log clean.

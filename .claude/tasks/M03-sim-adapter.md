@@ -35,7 +35,7 @@ Panel display (M04), runway placement (M05).
 
 - C172 #1 (0.2.0): ours −220 fpm, sim −242 fpm (9 %); pitch ours 9.3 vs sim raw −9.2 → `PITCH_SIGN = -1` confirmed; gear flags `111`; phases Idle → Rolling → Airborne → Landed; panel received the landing.
 - G read 0.96 at touchdown (average over the flare) → switched to the peak after contact (0.3.0, see `docs/architecture.md`).
-- `ATC MODEL` observed: `C172`, `DA42`, `KODIAK`, `$$:PHENOM 300E` (for M06).
+- `ATC MODEL` observed: `C172`, `DA42`, `C208`, `KODIAK`, `P46` (M500), `850` (TBM 850), `BE60` (Duke), `$$:PHENOM 300E` (FSReborn) → vendor free text, not ICAO. 0.3.1 logs `TITLE` with the aircraft line for M06 matching.
 - 0.3.0 also drops the M01 tick and logs `aircraft … -> profile …` once per change.
 
 ## Sim test procedure

@@ -22,7 +22,7 @@ class FakeAircraft final : public application::AircraftInfoProvider
   public:
     domain::AircraftIdentity current_aircraft() const override { return aircraft; }
 
-    domain::AircraftIdentity aircraft{"C172", false, 1111.f, 1, domain::EngineKind::Piston};
+    domain::AircraftIdentity aircraft{"C172", false, 1111.f, 1, domain::EngineKind::Piston, ""};
 };
 
 class FakeRunways final : public application::RunwayProvider

@@ -127,6 +127,10 @@ TEST_CASE("The aircraft identity maps category, engine type and mass", "[simvars
 
     CHECK(simvars::to_identity(aircraft("KODI", "Airplane", 5, 7255, 1)).engine_kind == EngineKind::Turboprop);
     CHECK(simvars::to_identity(aircraft("A20N", "airplane", 1, 174165, 2)).engine_kind == EngineKind::Jet);
+
+    simvars::RawAircraft tbm = aircraft("850", "Airplane", 5, 7394, 1);
+    std::strncpy(tbm.title.data(), "Daher TBM 850", tbm.title.size() - 1);
+    CHECK(simvars::to_identity(tbm).title == "Daher TBM 850");
 }
 
 TEST_CASE("The built-in catalog classifies the fleet until the FS24 list exists", "[profiles]")

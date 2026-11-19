@@ -97,6 +97,7 @@ domain::AircraftIdentity to_identity(const RawAircraft &raw)
     identity.max_takeoff_mass_kg = static_cast<float>(raw.max_gross_weight_lbs) * KG_PER_LB;
     identity.engine_count        = static_cast<int>(raw.engine_count);
     identity.engine_kind         = engine_kind(engine_type);
+    identity.title               = std::string(bounded(raw.title));
     return identity;
 }
 

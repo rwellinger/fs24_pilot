@@ -128,7 +128,7 @@ TEST_CASE("A new aircraft resolves its own profile and starts over", "[landing_m
     fixture.step(test::takeoff_roll(), 0.0);
     REQUIRE(fixture.monitor.phases().phase() == domain::FlightPhase::Rolling);
 
-    fixture.aircraft.aircraft = {"EC35", true, 3000.f, 2, domain::EngineKind::Turboprop};
+    fixture.aircraft.aircraft = {"EC35", true, 3000.f, 2, domain::EngineKind::Turboprop, ""};
     fixture.monitor.on_aircraft_loaded();
     CHECK(fixture.monitor.profile().name == "turbine_helicopter");
     CHECK(fixture.monitor.phases().phase() == domain::FlightPhase::Idle);
@@ -151,7 +151,7 @@ TEST_CASE("Repeated reports of the same aircraft are logged once", "[landing_mon
     fixture.monitor.on_aircraft_loaded();
     CHECK(fixture.logger.lines.size() == 1);
 
-    fixture.aircraft.aircraft = {"EC35", true, 3000.f, 2, domain::EngineKind::Turboprop};
+    fixture.aircraft.aircraft = {"EC35", true, 3000.f, 2, domain::EngineKind::Turboprop, ""};
     fixture.monitor.on_aircraft_loaded();
     CHECK(fixture.logger.lines.size() == 2);
 }

@@ -36,11 +36,12 @@ enum class EngineKind : std::uint8_t
 
 struct AircraftIdentity
 {
-    std::string type_designator; // ICAO type, e.g. "C172"
+    std::string type_designator; // vendor's ATC model name: "C172", "KODIAK", "850" — not always ICAO
     bool        is_rotorcraft       = false;
     float       max_takeoff_mass_kg = 0; // <= 0 = unknown
     int         engine_count        = 0;
     EngineKind  engine_kind         = EngineKind::Piston;
+    std::string title; // full variant name, e.g. "Daher TBM 850"
 };
 
 struct AircraftMatch

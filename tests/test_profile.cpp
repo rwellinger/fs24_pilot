@@ -17,7 +17,7 @@ namespace
 
 AircraftIdentity airframe(float mass_kg, int engines, EngineKind kind)
 {
-    return {"XXXX", false, mass_kg, engines, kind};
+    return {"XXXX", false, mass_kg, engines, kind, ""};
 }
 
 // Excerpt of the xp_pilot profile list as test data; the FS24 list follows in M06.
@@ -89,29 +89,29 @@ TEST_CASE("classify_fixed_wing_profile declines to guess without a usable mass",
 TEST_CASE("the match list is searched by substring and the first hit wins", "[profile]")
 {
     const ProfileResolver resolver(xp_pilot_catalog());
-    CHECK(resolver.resolve({"C172", false, 1111.f, 1, EngineKind::Piston}).name == "light_ga");
-    CHECK(resolver.resolve({"R22B", true, 0.f, 1, EngineKind::Piston}).name == "light_helicopter");
-    CHECK(resolver.resolve({"B738", false, 79000.f, 2, EngineKind::Jet}).thresholds[0] == -250);
+    CHECK(resolver.resolve({"C172", false, 1111.f, 1, EngineKind::Piston, ""}).name == "light_ga");
+    CHECK(resolver.resolve({"R22B", true, 0.f, 1, EngineKind::Piston, ""}).name == "light_helicopter");
+    CHECK(resolver.resolve({"B738", false, 79000.f, 2, EngineKind::Jet, ""}).thresholds[0] == -250);
 }
 
 TEST_CASE("an unlisted fixed-wing aircraft is classified by its airframe", "[profile]")
 {
     const ProfileResolver resolver(xp_pilot_catalog());
-    CHECK(resolver.resolve({"KODI", false, 3290.f, 1, EngineKind::Turboprop}).name == "turboprop");
-    CHECK(resolver.resolve({"A20N", false, 79000.f, 2, EngineKind::Jet}).name == "heavy_jet");
+    CHECK(resolver.resolve({"KODI", false, 3290.f, 1, EngineKind::Turboprop, ""}).name == "turboprop");
+    CHECK(resolver.resolve({"A20N", false, 79000.f, 2, EngineKind::Jet, ""}).name == "heavy_jet");
 }
 
 TEST_CASE("without list entry or usable airframe data the category fallback applies", "[profile]")
 {
     const ProfileResolver resolver(xp_pilot_catalog());
-    CHECK(resolver.resolve({"", false, 0.f, 0, EngineKind::Piston}).name == FIXED_WING_FALLBACK_PROFILE);
-    CHECK(resolver.resolve({"EC35", true, 3000.f, 2, EngineKind::Turboprop}).name == ROTORCRAFT_FALLBACK_PROFILE);
+    CHECK(resolver.resolve({"", false, 0.f, 0, EngineKind::Piston, ""}).name == FIXED_WING_FALLBACK_PROFILE);
+    CHECK(resolver.resolve({"EC35", true, 3000.f, 2, EngineKind::Turboprop, ""}).name == ROTORCRAFT_FALLBACK_PROFILE);
 }
 
 TEST_CASE("a classified profile missing from the catalog falls back instead of rating against nothing", "[profile]")
 {
     const ProfileResolver resolver(xp_pilot_catalog()); // has no "vlj"
-    const LandingProfile  profile = resolver.resolve({"C510", false, 3921.f, 2, EngineKind::Jet});
+    const LandingProfile  profile = resolver.resolve({"C510", false, 3921.f, 2, EngineKind::Jet, ""});
     CHECK(profile.name == FIXED_WING_FALLBACK_PROFILE);
     CHECK(profile.thresholds[0] == -125);
 }

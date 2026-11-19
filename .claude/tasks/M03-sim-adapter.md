@@ -21,6 +21,23 @@ The module detects and rates real landings in MSFS 2024 and logs the result to t
 
 Panel display (M04), runway placement (M05).
 
+## Implementation notes (2026-11-19)
+
+- Per-frame data: one SimConnect definition (`FRAME_FIELDS` in `adapters/simvars/frame_mapping.hpp`), period `SIM_FRAME`; sim time from `E:SIMULATION TIME` (wall-clock fallback logged).
+- Active frame = `Sim` running ∧ no `Pause_EX1` flag ∧ not `IS SLEW ACTIVE`.
+- Gear: any = `SIM ON GROUND` ∨ any `GEAR IS ON GROUND:0..2`; all = 0,1,2 (wheels) / both skids 10+11 or 1+2 (rotorcraft) — skid fallback: first ground contact when no gear flag is mapped.
+- AGL: `PLANE ALT ABOVE GROUND MINUS CG` (meters).
+- Aircraft: `ATC MODEL` (localisation key → designator), `CATEGORY`, `ENGINE TYPE`, `NUMBER OF ENGINES`, `MAX GROSS WEIGHT`; re-read on `AircraftLoaded` / `FlightLoaded` / `PositionChanged`.
+- Profiles: xp_pilot profile classes, no match list yet (M06) → classification by airframe.
+- **To verify in the sim:** pitch sign (MSFS nose-down positive → negated), body-X rate sign, bank sign, H145 skid flags. The console line `cross-check:` after each landing prints ours vs. the sim's own touchdown values and the raw gear flags.
+
+## Sim test procedure
+
+Free flight, Dev Mode console open (filter `fs24-pilot`), toolbar panel open.
+1. On load: `aircraft <ICAO> -> profile <name>` — note the ICAO for C172, A320neo/737, H145, Kodiak.
+2. Each landing logs `Airborne -> Landed`, `landing: <GRADE> <fpm> fpm <G> G …` and `cross-check: ours … sim …`. The panel shows the same in "last landing".
+3. Send the console lines for: 5× C172, 3× airliner, 1 provoked bounce, 1 touch-and-go, 1× H145, 1 landing with a pause on short final.
+
 ## Acceptance criteria
 
 - [ ] 5 landings with the C172 and 3 with an airliner: grade + fpm + G in the console; fpm within ±10 % of the sim's touchdown velocity (deviation documented).

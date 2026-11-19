@@ -6,25 +6,29 @@
  * See the LICENSE file in the project root for full license text.
  */
 
-// Composition root of the standalone module: the only place that knows every
-// ring. It creates the adapters, wires them into the application use cases and
-// owns their lifetime.
-//
-// M01 spike: a one-second tick and a hello reply prove the CommBus path to the
-// panel in both directions. Replaced by LandingMonitor wiring in M03/M04.
+// Composition root of the standalone module: the only place that knows every ring. It
+// creates the adapters, wires them into the LandingMonitor use case and owns their
+// lifetime. No logic lives here.
 
 #include <MSFS/MSFS.h>
-#include <MSFS/MSFS_WindowsTypes.h>
-
-// SimConnect.h relies on the Windows types above; keep it in its own include block.
-#include <SimConnect.h>
 
 #include <cstdio>
 #include <memory>
 #include <string>
 #include <string_view>
 
+#include "adapters/console/console_logger.hpp"
+#include "adapters/facilities/no_runway_data.hpp"
+#include "adapters/profiles/builtin_catalog.hpp"
+#include "adapters/simvars/cached_aircraft_info.hpp"
+#include "adapters/simvars/frame_mapping.hpp"
+#include "adapters/simvars/simconnect_session.hpp"
+#include "adapters/simvars/touchdown_cross_check.hpp"
+#include "adapters/storage/memory_landing_repository.hpp"
 #include "adapters/ui_bus/commbus_channel.hpp"
+#include "adapters/ui_bus/commbus_result_publisher.hpp"
+#include "application/landing_message.hpp"
+#include "application/landing_monitor.hpp"
 #include "application/ui_protocol.hpp"
 
 #ifndef FS24_PILOT_VERSION
@@ -35,71 +39,93 @@ namespace
 {
 
 namespace proto = fs24::application::ui_protocol;
-using fs24::adapters::ui_bus::CommBusChannel;
+using namespace fs24::adapters;
 
-enum SimEvent : SIMCONNECT_CLIENT_EVENT_ID
+constexpr std::size_t LANDINGS_KEPT = 20;
+
+class Module
 {
-    EVENT_ONE_SECOND = 1,
+  public:
+    Module()
+        : channel_([this](std::string_view message) { on_panel_message(message); }), publisher_(channel_),
+          repository_(LANDINGS_KEPT),
+          cross_check_([this]() -> const simvars::RawFrame & { return last_frame_; }, publisher_, logger_),
+          monitor_(fs24::domain::ProfileResolver(profiles::builtin_catalog()),
+                   {aircraft_, runways_, repository_, cross_check_, logger_}),
+          session_({.on_frame = [this](const simvars::RawFrame &raw, const simvars::SimState &state)
+                    { on_frame(raw, state); },
+                    .on_aircraft = [this](const simvars::RawAircraft &raw) { on_aircraft(raw); },
+                    .on_second   = [this]() { on_second(); }})
+    {
+    }
+
+    bool start() { return session_.open(); }
+
+  private:
+    void on_frame(const simvars::RawFrame &raw, const simvars::SimState &state)
+    {
+        last_frame_ = raw;
+        monitor_.on_frame(simvars::to_frame(raw, state, aircraft_.current_aircraft().is_rotorcraft));
+    }
+
+    void on_aircraft(const simvars::RawAircraft &raw)
+    {
+        aircraft_.update(raw);
+        monitor_.on_aircraft_loaded();
+    }
+
+    // M01 spike tick, replaced by the state message in M04.
+    void on_second()
+    {
+        ++ticks_;
+        channel_.send_to_panel(proto::envelope("tick", "{\"count\":" + std::to_string(ticks_) + "}"));
+    }
+
+    void on_panel_message(std::string_view message)
+    {
+        if (proto::message_type(message) != "panel_ready")
+        {
+            return;
+        }
+        channel_.send_to_panel(
+            proto::envelope("hello", "{\"module_version\":" + proto::json_string(FS24_PILOT_VERSION) +
+                                         ",\"ticks\":" + std::to_string(ticks_) + "}"));
+        if (const auto latest = repository_.latest())
+        {
+            channel_.send_to_panel(proto::envelope("landing", proto::landing_payload(*latest)));
+        }
+    }
+
+    console::ConsoleLogger            logger_;
+    ui_bus::CommBusChannel            channel_;
+    ui_bus::CommBusResultPublisher    publisher_;
+    storage::MemoryLandingRepository  repository_;
+    facilities::NoRunwayData          runways_;
+    simvars::CachedAircraftInfo       aircraft_;
+    simvars::RawFrame                 last_frame_{};
+    simvars::TouchdownCrossCheck      cross_check_;
+    fs24::application::LandingMonitor monitor_;
+    simvars::SimConnectSession        session_;
+    unsigned                          ticks_ = 0;
 };
 
-HANDLE                          g_sim = 0;
-std::unique_ptr<CommBusChannel> g_channel;
-unsigned                        g_ticks = 0;
-
-void send_hello()
-{
-    const std::string payload =
-        "{\"module_version\":" + proto::json_string(FS24_PILOT_VERSION) + ",\"ticks\":" + std::to_string(g_ticks) + "}";
-    g_channel->send_to_panel(proto::envelope("hello", payload));
-}
-
-void on_panel_message(std::string_view message)
-{
-    const std::string type = proto::message_type(message);
-    std::fprintf(stdout, "[fs24-pilot] panel -> module: %s\n", type.c_str());
-    if (type == "panel_ready")
-    {
-        send_hello();
-    }
-}
-
-void on_one_second()
-{
-    ++g_ticks;
-    g_channel->send_to_panel(proto::envelope("tick", "{\"count\":" + std::to_string(g_ticks) + "}"));
-}
-
-void CALLBACK dispatch(SIMCONNECT_RECV *data, DWORD /*size*/, void * /*ctx*/)
-{
-    if (data->dwID == SIMCONNECT_RECV_ID_EVENT &&
-        static_cast<SIMCONNECT_RECV_EVENT *>(data)->uEventID == EVENT_ONE_SECOND)
-    {
-        on_one_second();
-    }
-}
+std::unique_ptr<Module> g_module;
 
 } // namespace
 
 extern "C" MSFS_CALLBACK void module_init(void)
 {
-    g_channel = std::make_unique<CommBusChannel>(on_panel_message);
-    if (FAILED(SimConnect_Open(&g_sim, "fs24-pilot", nullptr, 0, 0, 0)))
+    g_module = std::make_unique<Module>();
+    if (!g_module->start())
     {
-        std::fprintf(stderr, "[fs24-pilot] SimConnect_Open failed\n");
+        g_module.reset();
         return;
     }
-    SimConnect_SubscribeToSystemEvent(g_sim, EVENT_ONE_SECOND, "1sec");
-    SimConnect_CallDispatch(g_sim, dispatch, nullptr);
     std::fprintf(stdout, "[fs24-pilot] %s ready (protocol %d)\n", FS24_PILOT_VERSION, proto::PROTOCOL_VERSION);
 }
 
 extern "C" MSFS_CALLBACK void module_deinit(void)
 {
-    if (g_sim != 0)
-    {
-        SimConnect_Close(g_sim);
-        g_sim = 0;
-    }
-    g_channel.reset();
+    g_module.reset();
     std::fprintf(stdout, "[fs24-pilot] stopped\n");
 }

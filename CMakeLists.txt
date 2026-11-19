@@ -25,11 +25,19 @@ else() # header-only until the first .cpp lands (M02)
     target_include_directories(fs24_core INTERFACE src)
 endif()
 
+# ── SDK-free adapter parts (mappings, built-in data), unit-tested on the host ─────
+# Convention: adapter sources that include no SDK header are named *_mapping.cpp or live
+# in adapters/profiles/; everything else in src/adapters/ is compiled by wasm/build.sh only.
+file(GLOB FS24_PURE_ADAPTER_SOURCES CONFIGURE_DEPENDS src/adapters/*/*_mapping.cpp src/adapters/profiles/*.cpp)
+add_library(fs24_adapters_pure STATIC ${FS24_PURE_ADAPTER_SOURCES})
+target_link_libraries(fs24_adapters_pure PUBLIC fs24_core)
+target_compile_options(fs24_adapters_pure PRIVATE ${FS24_WARNINGS} -fno-exceptions)
+
 # ── tests (Catch2 amalgamated, BSL-1.0) ───────────────────────────────────────
 file(GLOB FS24_TEST_SOURCES CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(fs24_tests vendor/catch2/catch_amalgamated.cpp ${FS24_TEST_SOURCES})
 target_include_directories(fs24_tests SYSTEM PRIVATE vendor)
-target_link_libraries(fs24_tests PRIVATE fs24_core)
+target_link_libraries(fs24_tests PRIVATE fs24_adapters_pure)
 set_source_files_properties(${FS24_TEST_SOURCES} PROPERTIES COMPILE_OPTIONS "${FS24_WARNINGS}")
 
 if(FS24_SANITIZE)

@@ -8,7 +8,7 @@ CLANG_FORMAT := $(LLVM_BIN)clang-format
 CLANG_TIDY   := $(LLVM_BIN)clang-tidy
 PYTHON      ?= $(shell command -v python3 || command -v python)
 CXX_FILES    = $(shell find src tests wasm/src -name '*.cpp' -o -name '*.hpp' 2>/dev/null)
-TIDY_FILES   = $(shell find src/domain src/application -name '*.cpp' 2>/dev/null)
+TIDY_FILES   = $(shell find src/domain src/application src/adapters/profiles -name '*.cpp' 2>/dev/null; find src/adapters -name '*_mapping.cpp' 2>/dev/null)
 
 .PHONY: help sdk host test format format-check tidy check wasm package clean gh-build cleanup_builds cleanup_branches
 
@@ -32,7 +32,7 @@ format: ## Apply clang-format
 format-check: ## Verify clang-format
 	$(CLANG_FORMAT) --dry-run --Werror $(CXX_FILES)
 
-tidy: host ## clang-tidy over domain/application (adapters need the SDK; checked by the WASM build)
+tidy: host ## clang-tidy over domain/application and the SDK-free adapter parts
 	@if [ -n "$(TIDY_FILES)" ]; then $(CLANG_TIDY) -p $(BUILD_DIR) --quiet $(TIDY_FILES); else echo "tidy: no .cpp in src/domain or src/application yet"; fi
 
 check: format-check tidy test ## Pre-commit gate: format, tidy, tests

@@ -31,6 +31,8 @@ The dependency rule points inward. FS24/SDK updates must only touch adapters.
 
 - The host CMake build never sees the SDK → an SDK include in domain/application fails the build. Keep it that way.
 - **SimVar names and units exist only in `src/adapters/simvars/`** (anti-corruption layer). Domain types use SI-ish units with explicit names (`fpm`, `kts`, `m`).
+- SDK-free adapter parts (`*_mapping.cpp`, `adapters/profiles/`, header-only adapters without SDK includes) are built and unit-tested on the host too; everything else in `src/adapters/` is compiled by `wasm/build.sh` only.
+- The SDK's WASM libc++ has no `std::ranges` algorithms — use the classic ones.
 - Ports (pure virtual interfaces in `application`) only where a second implementation is realistic: test fake or sim API change. No abstraction on spec.
 - Configuration (profiles, thresholds) is injected, no globals/singletons.
 - WASM ↔ panel messages are versioned JSON (`protocol_version`), documented in `docs/protocol.md`.

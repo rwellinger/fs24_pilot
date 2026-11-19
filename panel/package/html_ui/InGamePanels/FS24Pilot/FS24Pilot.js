@@ -4,7 +4,7 @@
  * Licensed under the MIT License. See the LICENSE file in the project root.
  */
 
-// M01 spike view: shows the module hello and the one-second tick.
+// Interim view (M01 spike + M03 landing line): replaced by view model + landing view in M04.
 // Replaced by view model + landing view in M04.
 class Fs24PilotPanel extends TemplateElement {
     connectedCallback() {
@@ -16,6 +16,7 @@ class Fs24PilotPanel extends TemplateElement {
             status: this.querySelector("#Status"),
             module: this.querySelector("#Module"),
             ticks: this.querySelector("#Ticks"),
+            landing: this.querySelector("#Landing"),
             log: this.querySelector("#Log"),
         };
         this.transport = new Fs24Transport(
@@ -35,6 +36,10 @@ class Fs24PilotPanel extends TemplateElement {
             this.el.ticks.textContent = `ticks: ${payload.ticks}`;
         } else if (type === "tick") {
             this.el.ticks.textContent = `ticks: ${payload.count}`;
+        } else if (type === "landing") {
+            this.el.landing.textContent =
+                `last landing: ${payload.grade} ${payload.descent_fpm} fpm ${payload.g_force} G, ` +
+                `${payload.bounce_count} bounce(s), ${payload.profile}`;
         }
         this.appendLog(type);
     }

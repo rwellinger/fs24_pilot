@@ -1,3 +1,4 @@
+# modernize-use-ranges is off: the libc++ of the MSFS SDK's WASM sysroot has no std::ranges algorithms.
 Checks: >-
   clang-diagnostic-*,
   bugprone-*,
@@ -7,6 +8,7 @@ Checks: >-
   modernize-*,
   -modernize-use-trailing-return-type,
   -modernize-use-nodiscard,
+  -modernize-use-ranges,
   readability-identifier-naming,
   readability-function-cognitive-complexity,
   readability-else-after-return

@@ -12,7 +12,7 @@ Port the landing rating of `~/Workspace/x-plane/xp_pilot` (X-Plane 12) to Micros
    - `panel/devmode/` — Dev Mode project that compiles the `.spb`; its output `Packages/fs24-pilot-panel-build/InGamePanels/fs24-pilot-panel.spb` is committed and copied into the package. Rebuild only when the panel XML changes (procedure in `docs/research/panel.md`).
 
 Sibling projects:
-- `~/Workspace/x-plane/xp_pilot` — source of the landing logic. Code is **copied once and cleaned up** (not forked, no shared library). Known bug there: `pitch_deg` is fed from `Q` (pitch *rate*), `flight_logger.cpp:653–654` — do not port it.
+- `~/Workspace/x-plane/xp_pilot` — source of the landing logic. Code is **copied once and cleaned up** (not forked, no shared library). Note: its `pitch_deg` is fed from `Q`, i.e. the flare label rates the pitch *rate*; fs24 keeps that behaviour with correct names and records the real pitch alongside (`docs/architecture.md`, M02 decisions).
 - `~/Workspace/msfs2024/fs24_streamdeck` — source of the WASM toolchain, SDK fetch, packaging and CI. Its `docs/research/wasm-bridge.md` holds the hard-won toolchain findings (only Asobo's LLVM produces loadable modules).
 
 Feasibility and risks: `docs/research/feasibility.md`. Architecture: `docs/architecture.md`.

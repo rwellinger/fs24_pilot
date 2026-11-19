@@ -34,8 +34,8 @@ Landing logic, final design.
 
 ## Acceptance criteria
 
-- [ ] Toolbar shows the fs24 Pilot icon; clicking opens the panel.
-- [ ] Panel displays messages sent by the WASM module.
-- [ ] Answers to all open questions in `docs/research/panel.md`.
-- [ ] Build stays reproducible from CI without tools on the sim PC (or the committed-binary fallback is documented).
-- [ ] **Gate decision** recorded in the issue: go / re-decide (EFB app or other).
+- [x] Toolbar shows the fs24 Pilot icon; clicking opens the panel. — sim PC 2026-11-19.
+- [x] Panel displays messages sent by the WASM module. — hello (module 0.1.2) + 1 s ticks; panel → module via `panel_ready`.
+- [x] Answers to all open questions in `docs/research/panel.md`. — message size and panel hot reload deferred to M04.
+- [x] Build stays reproducible from CI without tools on the sim PC (or the committed-binary fallback is documented). — `.spb` built once in the Dev Mode Project Editor, committed; CI packages it.
+- [x] **Gate decision** recorded in the issue: go / re-decide (EFB app or other). — **go**, toolbar panel.

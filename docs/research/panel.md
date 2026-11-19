@@ -49,12 +49,13 @@ Design consequence (fits the architecture anyway):
 - The panel is a pure view: on open it sends `panel_ready`, the module answers with the current state; while open it receives live updates.
 - No auto-open on touchdown. The user keeps the panel open (docked) or opens it after landing. An EFB app would run in the background, but only in aircraft with the 2024 EFB — possible later milestone, not needed for the rating itself.
 
-## 5. Spike verification (sim PC)
+## 5. Spike verification (sim PC, 2026-11-19, module 0.1.2)
 
-To be filled in after the sim test:
+- [x] Toolbar icon visible, panel opens. The first open was tiny in the bottom-right corner; with `content-fit="true"` the frame snapped back on resize → `content-fit="false"` (0.1.2). The sim remembers position and size per panel.
+- [x] Panel shows `module answered`, `module: 0.1.2`, ticks counting up every second, last 5 messages in the log.
+- [x] State lives in the module: on open the panel showed tick 77 (seconds since module start), not 0.
+- [ ] Console line `panel -> module: panel_ready` — not checked explicitly; implied by the `hello` answer, which is only sent on `panel_ready`.
+- [ ] Message size limit — check in M04 with a full landing payload.
+- [ ] Panel reload without sim restart (Coherent GT debugger / back to main menu) — check in M04.
 
-- [ ] Toolbar icon visible (gear menu → enable fs24 Pilot), panel opens.
-- [ ] Panel shows `module answered`, module version, ticks counting up every second.
-- [ ] Console shows `[fs24-pilot] panel -> module: panel_ready` on every panel open.
-- [ ] Close + reopen the panel: ticks continue from the module's count (state lives in WASM).
-- [ ] Message size: not limited in practice for our payloads (< 4 KB) — to be confirmed in M04 with a full landing.
+**Gate: go.** The toolbar panel is the UI path; no EFB app needed.

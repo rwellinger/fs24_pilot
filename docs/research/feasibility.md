@@ -13,7 +13,7 @@ Feasible. The rating logic can be taken over largely unchanged; the sim adapter,
 | Sim data | high | All inputs exist as SimVars; MSFS even captures touchdown values itself (`PLANE TOUCHDOWN NORMAL VELOCITY`, `…PITCH DEGREES`, `…BANK DEGREES`) |
 | Runways | medium | No `apt.dat` / `XPLMFindNavAid`. Replacement: SimConnect Facilities API (airport + runways incl. displaced threshold), asynchronous |
 | Persistence | high | File I/O in the package's `\work` folder from WASM |
-| UI | **main risk** | see below |
+| UI | resolved (M01) | toolbar panel works; `.spb` built once in Dev Mode, see `panel.md` |
 
 ## Risks
 

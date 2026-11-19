@@ -25,11 +25,10 @@ and the MIT-licensed [msfs-input-viewer](https://github.com/spitice/msfs-input-v
 
 ### Rebuild procedure (sim PC, ~5 min)
 
-1. Copy the folder `panel/devmode/` from the repo to the sim PC (any folder outside `Community/`, e.g. `Documents\fs24-pilot-devmode`).
+1. Use `panel/devmode/` from a checkout of the repo on the sim PC (or a copy of just that folder, outside `Community/`). The build output folders are gitignored.
 2. MSFS 2024 → Developer Mode on → *Tools → Project Editor* → *File → Open project* → `fs24-pilot-panel-build.xml` (menu names not yet verified on 2024 — correct them here after the first build).
 3. *Build All* (or Build on the package). Console should report the SPB asset group as built.
-4. Take `Packages\fs24-pilot-panel-build\InGamePanels\fs24-pilot-panel.spb` from the project folder and put it into the repo at `panel/package/InGamePanels/`.
-5. Delete the project folder on the sim PC again.
+4. Copy `panel/devmode/Packages/fs24-pilot-panel-build/InGamePanels/fs24-pilot-panel.spb` to `panel/package/InGamePanels/` and commit it.
 
 ## 3. CommBus
 

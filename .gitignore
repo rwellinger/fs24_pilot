@@ -24,3 +24,11 @@ cmake-build-*/
 
 # Third-party reference material — never commit
 /references/
+
+# Dev Mode Project Editor build output (only the .spb is kept, in panel/package/)
+/panel/devmode/Packages/
+/panel/devmode/_PackageInt/
+/panel/devmode/_PublishingGroupInt/
+/panel/devmode/PackagesMetadata/
+/panel/devmode/PublishingGroupsContent/
+/panel/devmode/PublishingGroupsMetadata/

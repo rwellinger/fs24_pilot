@@ -41,7 +41,7 @@ Built with `-fno-exceptions`. JSON handling must not throw (nlohmann/json with `
 
 ### R5 — aircraft identification
 
-xp_pilot matches `acf_ICAO` substrings. MSFS: `ATC MODEL` usually holds the ICAO type designator, but add-ons vary → matching table plus airframe classification fallback (`ENGINE TYPE`, `MAX GROSS WEIGHT`).
+xp_pilot matches `acf_ICAO` substrings. MSFS: `ATC MODEL` is the vendor's free-text model name — ICAO-like for some aircraft (`C172`, `DA42`), a product name (`KODIAK`) or a `$$:` localisation key (`$$:PHENOM 300E`) for others (observed in M03) → matching table plus airframe classification fallback (`ENGINE TYPE`, `MAX GROSS WEIGHT`).
 
 ## Scope taken over
 

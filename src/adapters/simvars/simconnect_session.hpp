@@ -27,7 +27,6 @@ struct SessionHandlers
 {
     std::function<void(const RawFrame &, const SimState &)> on_frame;    // every sim frame
     std::function<void(const RawAircraft &)>                on_aircraft; // aircraft loaded / repositioned
-    std::function<void()>                                   on_second;
 };
 
 // The module's own SimConnect connection: data definitions, system events and dispatch.

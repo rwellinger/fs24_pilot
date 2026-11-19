@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "application/ports.hpp"
 #include "domain/flight_phase_machine.hpp"
 #include "domain/frame.hpp"
@@ -53,6 +55,7 @@ class LandingMonitor
     LandingMonitorPorts        ports_;
     domain::AircraftIdentity   aircraft_;
     domain::LandingProfile     profile_;
+    std::string                last_aircraft_line_;
     domain::FlightPhaseMachine phases_;
     bool                       runways_prefetched_ = false;
 };

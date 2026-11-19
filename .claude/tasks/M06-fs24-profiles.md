@@ -9,7 +9,7 @@ Profiles cover the FS24 default fleet, the HPG H145 and the user's add-ons; unkn
 ## Scope
 
 - `data/profiles.json` (format from xp_pilot `flight_logger_profiles.json`: profile classes with 4 fpm thresholds, aircraft match list). Embedded into the WASM at build time (no runtime file dependency) — decide and document.
-- Matching on `ATC MODEL` (icao_type_designator; may be a `$$:`-prefixed localisation key), fallback `TITLE` substring; document per aircraft which value FS24 actually reports (table in `docs/research/aircraft.md`).
+- Matching on `ATC MODEL`, fallback `TITLE` substring. `ATC MODEL` is the vendor's free-text model name, not the ICAO designator: observed `C172`, `DA42` (ICAO-like), `KODIAK` (product name), `$$:PHENOM 300E` (localisation key). Match lists therefore hold the observed strings, not just ICAO codes; document per aircraft which value FS24 actually reports (table in `docs/research/aircraft.md`).
 - Airframe classification: MSFS `ENGINE TYPE` (0 piston, 1 jet, 3 helo turbine, 5 turboprop …) + `MAX GROSS WEIGHT` (lbs → kg) + engine count, mirroring xp_pilot's rules.
 - Lists: FS24 default fleet (Asobo/Microsoft), HPG H145, user's add-ons (list provided by the user in the issue).
 - **Must have (user priority): Kodiak 2024** (Daher/SimWorks Studios Kodiak 100). Observed in M03: `ATC MODEL` reports `KODIAK` (neither the ICAO designator `KODI` nor xp_pilot's `KODK`) → match `KODIAK` and `KODI`. Classification already yields `turboprop`; keep it unless the test landings suggest otherwise.

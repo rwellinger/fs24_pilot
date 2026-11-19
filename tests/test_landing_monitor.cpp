@@ -8,6 +8,8 @@
 
 #include <catch2/catch_amalgamated.hpp>
 
+#include <optional>
+
 #include "application/landing_monitor.hpp"
 #include "fakes/fake_ports.hpp"
 #include "support.hpp"
@@ -69,7 +71,7 @@ struct Fixture
         auto           sink = [this](const FrameInput &frame)
         {
             monitor.on_frame(frame);
-            return 0;
+            return std::optional<domain::Landing>{};
         };
         approach.descend_to_touchdown(sink);
         approach.nose_down(sink);
@@ -140,4 +142,16 @@ TEST_CASE("Every transition and the landing summary are logged", "[landing_monit
     const auto &lines = fixture.logger.lines;
     REQUIRE(lines.size() >= 4);
     CHECK(lines.back().find("landing: HARD LANDING!") == 0);
+}
+
+TEST_CASE("Repeated reports of the same aircraft are logged once", "[landing_monitor]")
+{
+    Fixture fixture;
+    fixture.monitor.on_aircraft_loaded();
+    fixture.monitor.on_aircraft_loaded();
+    CHECK(fixture.logger.lines.size() == 1);
+
+    fixture.aircraft.aircraft = {"EC35", true, 3000.f, 2, domain::EngineKind::Turboprop};
+    fixture.monitor.on_aircraft_loaded();
+    CHECK(fixture.logger.lines.size() == 2);
 }

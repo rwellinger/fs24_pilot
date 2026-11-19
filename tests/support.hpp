@@ -8,12 +8,19 @@
 
 #pragma once
 
+#include <optional>
+
+#include "domain/flight_phase_machine.hpp"
 #include "domain/frame.hpp"
+#include "domain/landing.hpp"
 #include "domain/landing_detector.hpp"
 
 // Synthetic sim frames for the landing tests.
 namespace fs24::test
 {
+
+inline bool completed(const std::optional<domain::Landing> &landing) { return landing.has_value(); }
+inline bool completed(const domain::PhaseStep &step) { return step.transition != domain::PhaseTransition::None; }
 
 inline domain::FrameInput parked()
 {
@@ -97,10 +104,18 @@ class Approach
         return sink(frame(true, false));
     }
 
+    // Nose gear down, then rolling on all gear until the sink reports a result or the
+    // impact window has surely passed; returns that result.
     template <typename Sink> auto nose_down(Sink &&sink)
     {
-        agl_m = 0.f;
-        return sink(frame(true, true));
+        agl_m                = 0.f;
+        auto      last       = sink(frame(true, true));
+        const int max_frames = static_cast<int>((domain::IMPACT_WINDOW_S + 0.2) / frame_s_);
+        for (int i = 0; i < max_frames && !completed(last); ++i)
+        {
+            last = sink(frame(true, true));
+        }
+        return last;
     }
 
     double time_s() const { return t_; }

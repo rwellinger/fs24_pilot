@@ -14,6 +14,7 @@
 
 using fs24::domain::FrameInput;
 using fs24::domain::GATE_AGL_M;
+using fs24::domain::IMPACT_WINDOW_S;
 using fs24::domain::LandingDetector;
 using fs24::test::Approach;
 
@@ -185,18 +186,69 @@ TEST_CASE("Nose gear contact without a main-gear touchdown completes nothing", "
     CHECK_FALSE(detector.step_fixed_wing(all_down).has_value());
 }
 
-TEST_CASE("Skids complete a rotorcraft landing on the rising edge of full contact", "[landing_detector]")
+TEST_CASE("Skids complete a rotorcraft landing once the impact of full contact has passed", "[landing_detector]")
 {
     LandingDetector detector = armed_in_the_air();
     FrameInput      one_skid;
     one_skid.on_any_gear = true;
     CHECK_FALSE(detector.step_rotorcraft(one_skid).has_value());
 
-    const auto landing = detector.step_rotorcraft(fs24::test::parked());
+    FrameInput skids = fs24::test::parked();
+    skids.g_force    = 1.4f;
+    CHECK_FALSE(detector.step_rotorcraft(skids).has_value()); // impact window still open
+
+    skids.g_force      = 1.f;
+    skids.sim_time_s   = IMPACT_WINDOW_S;
+    const auto landing = detector.step_rotorcraft(skids);
     REQUIRE(landing.has_value());
     CHECK(landing->is_rotorcraft);
     CHECK(landing->bounce_count == 0);
-    CHECK_FALSE(detector.step_rotorcraft(fs24::test::parked()).has_value());
+    CHECK(landing->g_force == Catch::Approx(1.4f));
+    CHECK_FALSE(detector.step_rotorcraft(skids).has_value());
+}
+
+TEST_CASE("The G force is the peak right after main-gear contact, not the flare load", "[landing_detector]")
+{
+    LandingDetector detector = armed_in_the_air();
+    Approach        approach;
+    int             frames_on_ground = 0;
+    auto            sink             = [&](FrameInput frame)
+    {
+        // Below 1 G in the flare, a spike on the second frame after contact, then rolling.
+        frames_on_ground = frame.on_any_gear ? frames_on_ground + 1 : 0;
+        if (frame.on_any_gear)
+        {
+            frame.g_force = frames_on_ground == 2 ? 1.6f : 1.05f;
+        }
+        else
+        {
+            frame.g_force = 0.95f;
+        }
+        return detector.step_fixed_wing(frame);
+    };
+    approach.descend_to_touchdown(sink);
+    const auto landing = approach.nose_down(sink);
+    REQUIRE(landing.has_value());
+    CHECK(landing->g_force == Catch::Approx(1.6f));
+}
+
+TEST_CASE("A spike after the impact window does not count as touchdown load", "[landing_detector]")
+{
+    LandingDetector detector = armed_in_the_air();
+    Approach        approach;
+    approach.descend_to_touchdown(fixed_wing(detector));
+    for (int frame = 0; frame < 20; ++frame) // 1 s on the mains
+    {
+        detector.step_fixed_wing(approach.frame(true, false));
+    }
+    auto taxiway_bump = [&detector](FrameInput frame)
+    {
+        frame.g_force = 2.f;
+        return detector.step_fixed_wing(frame);
+    };
+    const auto landing = approach.nose_down(taxiway_bump);
+    REQUIRE(landing.has_value());
+    CHECK(landing->g_force < 1.5f);
 }
 
 TEST_CASE("Vertical speed comes from the AGL window once it spans time", "[landing_detector]")

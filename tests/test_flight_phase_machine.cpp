@@ -46,6 +46,17 @@ class Driver
         return first;
     }
 
+    // Holds one frame until it causes a transition, at most for `seconds`.
+    PhaseStep hold_until_transition(const FrameInput &frame, double seconds)
+    {
+        PhaseStep last;
+        for (double held = 0.0; held < seconds && last.transition == PhaseTransition::None; held += FRAME_S)
+        {
+            last = step(frame);
+        }
+        return last;
+    }
+
     FlightPhaseMachine machine;
 
   private:
@@ -173,7 +184,7 @@ TEST_CASE("A helicopter lands on full skid contact and goes again by skid contac
     one_skid.agl_m       = 0.f;
     CHECK(driver.step(one_skid).transition == PhaseTransition::None);
 
-    const PhaseStep landed = driver.step(fs24::test::parked());
+    const PhaseStep landed = driver.hold_until_transition(fs24::test::parked(), 1.0);
     REQUIRE(landed.transition == PhaseTransition::Landed);
     REQUIRE(landed.landing.has_value());
     CHECK(landed.landing->is_rotorcraft);

@@ -31,6 +31,13 @@ Panel display (M04), runway placement (M05).
 - Profiles: xp_pilot profile classes, no match list yet (M06) → classification by airframe.
 - **To verify in the sim:** pitch sign (MSFS nose-down positive → negated), body-X rate sign, bank sign, H145 skid flags. The console line `cross-check:` after each landing prints ours vs. the sim's own touchdown values and the raw gear flags.
 
+## Sim results so far
+
+- C172 #1 (0.2.0): ours −220 fpm, sim −242 fpm (9 %); pitch ours 9.3 vs sim raw −9.2 → `PITCH_SIGN = -1` confirmed; gear flags `111`; phases Idle → Rolling → Airborne → Landed; panel received the landing.
+- G read 0.96 at touchdown (average over the flare) → switched to the peak after contact (0.3.0, see `docs/architecture.md`).
+- `ATC MODEL` observed: `C172`, `DA42`, `KODIAK`, `$$:PHENOM 300E` (for M06).
+- 0.3.0 also drops the M01 tick and logs `aircraft … -> profile …` once per change.
+
 ## Sim test procedure
 
 Free flight, Dev Mode console open (filter `fs24-pilot`), toolbar panel open.

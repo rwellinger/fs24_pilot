@@ -38,7 +38,6 @@ enum Event : SIMCONNECT_CLIENT_EVENT_ID
     EVT_AIRCRAFT_LOADED  = 3,
     EVT_FLIGHT_LOADED    = 4,
     EVT_POSITION_CHANGED = 5,
-    EVT_ONE_SECOND       = 6,
 };
 
 template <std::size_t N> void add_fields(HANDLE sim, Definition definition, const std::array<SimVarField, N> &fields)
@@ -106,7 +105,6 @@ void SimConnectSession::subscribe_events()
     SimConnect_SubscribeToSystemEvent(sim_, EVT_AIRCRAFT_LOADED, "AircraftLoaded");
     SimConnect_SubscribeToSystemEvent(sim_, EVT_FLIGHT_LOADED, "FlightLoaded");
     SimConnect_SubscribeToSystemEvent(sim_, EVT_POSITION_CHANGED, "PositionChanged");
-    SimConnect_SubscribeToSystemEvent(sim_, EVT_ONE_SECOND, "1sec");
 }
 
 void SimConnectSession::request_aircraft()
@@ -178,9 +176,6 @@ void SimConnectSession::handle_event(const SIMCONNECT_RECV_EVENT &event)
     case EVT_FLIGHT_LOADED:
     case EVT_POSITION_CHANGED:
         request_aircraft();
-        return;
-    case EVT_ONE_SECOND:
-        handlers_.on_second();
         return;
     default:
         return;

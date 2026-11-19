@@ -83,7 +83,7 @@ xp_pilot is GPL-3.0, this repo is MIT. Ported code is relicensed by its sole aut
 
 - SimConnect IDs are connection-scoped; the module opens its own SimConnect connection in `module_init`.
 - Logging: `fprintf(stdout|stderr, "[fs24-pilot] …")` → Dev Mode console.
-- Useful SimVars: `PLANE TOUCHDOWN NORMAL VELOCITY` / `PLANE TOUCHDOWN PITCH DEGREES` / `PLANE TOUCHDOWN BANK DEGREES` (sim's own touchdown capture, cross-check), `CONTACT POINT IS ON GROUND:n`, `SIM ON GROUND`, `ATC MODEL` (icao_type_designator), `ENGINE TYPE`, `MAX GROSS WEIGHT`.
+- Useful SimVars: `PLANE TOUCHDOWN NORMAL VELOCITY` / `PLANE TOUCHDOWN PITCH DEGREES` / `PLANE TOUCHDOWN BANK DEGREES` (sim's own touchdown capture, cross-check), `CONTACT POINT IS ON GROUND:n`, `SIM ON GROUND`, `ATC MODEL` (the vendor's free-text model name from `aircraft.cfg`: ICAO-like for some aircraft, a product name or a `$$:`/`TT:` localisation key for others — not a reliable ICAO designator), `ENGINE TYPE`, `MAX GROSS WEIGHT`.
 
 ## References
 

@@ -54,8 +54,7 @@ class Module
                    {aircraft_, runways_, repository_, cross_check_, logger_}),
           session_({.on_frame = [this](const simvars::RawFrame &raw, const simvars::SimState &state)
                     { on_frame(raw, state); },
-                    .on_aircraft = [this](const simvars::RawAircraft &raw) { on_aircraft(raw); },
-                    .on_second   = [this]() { on_second(); }})
+                    .on_aircraft = [this](const simvars::RawAircraft &raw) { on_aircraft(raw); }})
     {
     }
 
@@ -74,13 +73,6 @@ class Module
         monitor_.on_aircraft_loaded();
     }
 
-    // M01 spike tick, replaced by the state message in M04.
-    void on_second()
-    {
-        ++ticks_;
-        channel_.send_to_panel(proto::envelope("tick", "{\"count\":" + std::to_string(ticks_) + "}"));
-    }
-
     void on_panel_message(std::string_view message)
     {
         if (proto::message_type(message) != "panel_ready")
@@ -88,8 +80,7 @@ class Module
             return;
         }
         channel_.send_to_panel(
-            proto::envelope("hello", "{\"module_version\":" + proto::json_string(FS24_PILOT_VERSION) +
-                                         ",\"ticks\":" + std::to_string(ticks_) + "}"));
+            proto::envelope("hello", "{\"module_version\":" + proto::json_string(FS24_PILOT_VERSION) + "}"));
         if (const auto latest = repository_.latest())
         {
             channel_.send_to_panel(proto::envelope("landing", proto::landing_payload(*latest)));
@@ -106,7 +97,6 @@ class Module
     simvars::TouchdownCrossCheck      cross_check_;
     fs24::application::LandingMonitor monitor_;
     simvars::SimConnectSession        session_;
-    unsigned                          ticks_ = 0;
 };
 
 std::unique_ptr<Module> g_module;

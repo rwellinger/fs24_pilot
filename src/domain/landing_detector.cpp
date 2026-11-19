@@ -8,6 +8,7 @@
 
 #include "domain/landing_detector.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <optional>
 #include <utility>
@@ -30,10 +31,15 @@ void LandingDetector::arm(bool on_any_gear, bool on_all_gear)
 std::optional<Landing> LandingDetector::step_fixed_wing(const FrameInput &frame)
 {
     observe(frame);
+    if (completed_)
+    {
+        return complete_when_impact_passed(frame);
+    }
     track_gate(frame, smoothed_vertical_speed_fpm(frame));
 
     const TouchdownKind kind = classify_main_gear_touchdown(frame);
     record_main_gear_touchdown(kind, frame);
+    track_impact(frame);
     track_main_gear_lift(frame);
 
     const bool nose_gear_settled = armed_ && touchdown_ && !previous_on_all_ && frame.on_all_gear;
@@ -42,23 +48,28 @@ std::optional<Landing> LandingDetector::step_fixed_wing(const FrameInput &frame)
         remember_gear_contact(frame);
         return std::nullopt;
     }
-    Landing landing      = *touchdown_;
-    landing.bounce_count = bounce_count_;
-    return complete(std::move(landing), frame);
+    completed_               = *touchdown_;
+    completed_->bounce_count = bounce_count_;
+    return complete_when_impact_passed(frame);
 }
 
 std::optional<Landing> LandingDetector::step_rotorcraft(const FrameInput &frame)
 {
     observe(frame);
+    if (completed_)
+    {
+        return complete_when_impact_passed(frame);
+    }
     const bool skids_touched_down = armed_ && !previous_on_all_ && frame.on_all_gear;
     if (!skids_touched_down)
     {
         remember_gear_contact(frame);
         return std::nullopt;
     }
-    Landing landing       = touchdown_from(frame);
-    landing.is_rotorcraft = true;
-    return complete(std::move(landing), frame);
+    open_impact_window(frame);
+    completed_                = touchdown_from(frame);
+    completed_->is_rotorcraft = true;
+    return complete_when_impact_passed(frame);
 }
 
 float LandingDetector::smoothed_vertical_speed_fpm(const FrameInput &frame) const
@@ -76,7 +87,6 @@ float LandingDetector::smoothed_vertical_speed_fpm(const FrameInput &frame) cons
 void LandingDetector::observe(const FrameInput &frame)
 {
     agl_window_.push(frame.agl_m, frame.sim_time_s);
-    g_window_.push(frame.g_force, frame.sim_time_s);
     bank_window_.push(frame.bank_deg, frame.sim_time_s);
     yaw_rate_window_.push(frame.yaw_rate_deg_s, frame.sim_time_s);
 }
@@ -142,6 +152,7 @@ void LandingDetector::record_main_gear_touchdown(TouchdownKind kind, const Frame
     case TouchdownKind::First:
         break;
     }
+    open_impact_window(frame);
 
     if (below_gate_since_s_ && !float_time_s_)
     {
@@ -183,11 +194,23 @@ void LandingDetector::reset_lift_tracking()
     max_agl_since_touchdown_ft_ = 0.f;
 }
 
+void LandingDetector::open_impact_window(const FrameInput &frame)
+{
+    impact_until_s_ = frame.sim_time_s + IMPACT_WINDOW_S;
+}
+
+void LandingDetector::track_impact(const FrameInput &frame)
+{
+    if (impact_until_s_ && frame.sim_time_s <= *impact_until_s_)
+    {
+        peak_g_ = std::max(peak_g_, frame.g_force);
+    }
+}
+
 Landing LandingDetector::touchdown_from(const FrameInput &frame) const
 {
     Landing landing;
     landing.descent_fpm       = smoothed_vertical_speed_fpm(frame);
-    landing.g_force           = g_window_.average();
     landing.pitch_deg         = frame.pitch_deg;
     landing.pitch_rate_deg_s  = frame.pitch_rate_deg_s;
     landing.bank_deg          = bank_window_.average();
@@ -210,8 +233,15 @@ Landing LandingDetector::touchdown_from(const FrameInput &frame) const
     return landing;
 }
 
-Landing LandingDetector::complete(Landing landing, const FrameInput &frame)
+std::optional<Landing> LandingDetector::complete_when_impact_passed(const FrameInput &frame)
 {
+    track_impact(frame);
+    if (!completed_ || (impact_until_s_ && frame.sim_time_s < *impact_until_s_))
+    {
+        return std::nullopt;
+    }
+    Landing landing = *std::move(completed_);
+    landing.g_force = peak_g_;
     arm(frame.on_any_gear, frame.on_all_gear);
     return landing;
 }

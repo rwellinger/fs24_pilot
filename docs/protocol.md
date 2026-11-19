@@ -27,8 +27,7 @@ The receiver drops messages with another `protocol_version`; the panel shows a m
 
 | type | payload | meaning |
 |---|---|---|
-| `hello` | `{ "module_version": "0.2.0", "ticks": 12 }` | answer to `panel_ready` (M01 spike) |
-| `tick` | `{ "count": 13 }` | once per second (M01 spike, removed in M04) |
+| `hello` | `{ "module_version": "0.3.0" }` | answer to `panel_ready` |
 | `landing` | see below | a landing was completed; also sent after `hello` when one exists |
 
 ### `landing` payload (M03)

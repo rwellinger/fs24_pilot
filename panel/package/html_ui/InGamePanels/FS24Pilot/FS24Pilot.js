@@ -5,7 +5,6 @@
  */
 
 // Interim view (M01 spike + M03 landing line): replaced by view model + landing view in M04.
-// Replaced by view model + landing view in M04.
 class Fs24PilotPanel extends TemplateElement {
     connectedCallback() {
         // Not every Coherent TemplateElement version defines it; an exception here would stop the panel silently.
@@ -15,7 +14,6 @@ class Fs24PilotPanel extends TemplateElement {
         this.el = {
             status: this.querySelector("#Status"),
             module: this.querySelector("#Module"),
-            ticks: this.querySelector("#Ticks"),
             landing: this.querySelector("#Landing"),
             log: this.querySelector("#Log"),
         };
@@ -33,9 +31,6 @@ class Fs24PilotPanel extends TemplateElement {
         if (type === "hello") {
             this.showStatus("module answered");
             this.el.module.textContent = `module: ${payload.module_version}`;
-            this.el.ticks.textContent = `ticks: ${payload.ticks}`;
-        } else if (type === "tick") {
-            this.el.ticks.textContent = `ticks: ${payload.count}`;
         } else if (type === "landing") {
             this.el.landing.textContent =
                 `last landing: ${payload.grade} ${payload.descent_fpm} fpm ${payload.g_force} G, ` +

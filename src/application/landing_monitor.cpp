@@ -46,7 +46,13 @@ void LandingMonitor::on_aircraft_loaded()
     profile_  = resolver_.resolve(aircraft_);
     phases_.reset();
     runways_prefetched_ = false;
-    ports_.logger.info("aircraft " + aircraft_.type_designator + " -> profile " + profile_.name);
+    // Load, flight load and reposition all report the aircraft: log it once per change.
+    std::string line = "aircraft " + aircraft_.type_designator + " -> profile " + profile_.name;
+    if (line != last_aircraft_line_)
+    {
+        ports_.logger.info(line);
+        last_aircraft_line_ = std::move(line);
+    }
 }
 
 void LandingMonitor::on_frame(const domain::FrameInput &frame)

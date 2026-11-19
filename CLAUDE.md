@@ -8,8 +8,8 @@ Port the landing rating of `~/Workspace/x-plane/xp_pilot` (X-Plane 12) to Micros
 
 1. **WASM standalone module** (C++, `wasm/` + `src/`) — samples sim variables every sim frame, detects touchdowns, rates them, persists the last N landings, publishes results.
 2. **In-game toolbar panel** (HTML/JS, `panel/`) — displays the result. Receives data from the module via CommBus. Contains no rating logic. Its JS only runs while the panel is open, so the module owns all state and answers `panel_ready` (`docs/research/panel.md`).
-   - `panel/package/` — laid out exactly as in the package (`html_ui/…`, `InGamePanels/fs24-pilot-panel.spb`).
-   - `panel/devmode/` — Dev Mode project that compiles the `.spb`. The `.spb` is committed; rebuild it only when the panel XML changes (procedure in `docs/research/panel.md`).
+   - `panel/package/` — laid out exactly as in the package (`html_ui/…`).
+   - `panel/devmode/` — Dev Mode project that compiles the `.spb`; its output `Packages/fs24-pilot-panel-build/InGamePanels/fs24-pilot-panel.spb` is committed and copied into the package. Rebuild only when the panel XML changes (procedure in `docs/research/panel.md`).
 
 Sibling projects:
 - `~/Workspace/x-plane/xp_pilot` — source of the landing logic. Code is **copied once and cleaned up** (not forked, no shared library). Known bug there: `pitch_deg` is fed from `Q` (pitch *rate*), `flight_logger.cpp:653–654` — do not port it.
@@ -52,7 +52,7 @@ The dependency rule points inward. FS24/SDK updates must only touch adapters.
 | WASM compile check | Mac: `make wasm` (stock LLVM, not loadable) |
 | Loadable build | `make gh-build` → GitHub Actions Windows runner with the SDK's LLVM |
 | Install | sim PC: unzip the artifact into the Community folder |
-| Panel `.spb` (rare) | sim PC: Dev Mode Project Editor on a temporary copy of `panel/devmode/` — the only sanctioned exception, see `docs/research/panel.md` |
+| Panel `.spb` (rare) | sim PC: Dev Mode Project Editor on `panel/devmode/` of a repo checkout — the only sanctioned exception, see `docs/research/panel.md` |
 | Debug | MSFS Developer Mode: console (`[fs24-pilot]` lines), WASM Debug window |
 
 No Node, Visual Studio, MSFS SDK or any dev tool on the sim PC. Community folder (MS Store): `%LOCALAPPDATA%\Packages\Microsoft.Limitless_8wekyb3d8bbwe\LocalCache\Packages\Community`.

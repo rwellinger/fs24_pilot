@@ -26,6 +26,8 @@ OUT = ROOT / "out"
 PKG = OUT / NAME
 WASM = ROOT / "wasm" / "build" / f"{NAME}.wasm"
 PANEL = ROOT / "panel" / "package"
+# Compiled once by the Dev Mode Project Editor, committed where the sim puts it (docs/research/panel.md).
+PANEL_SPB = ROOT / "panel" / "devmode" / "Packages" / "fs24-pilot-panel-build" / "InGamePanels" / "fs24-pilot-panel.spb"
 VERSION = (ROOT / "wasm" / "VERSION").read_text(encoding="utf-8").strip()
 
 # Windows FILETIME: 100 ns ticks since 1601-01-01 UTC.
@@ -45,6 +47,8 @@ def manifest() -> dict:
         "creator": "thWelly",
         "package_version": VERSION,
         "minimum_game_version": "1.0.0",
+        # Taken from the manifest the 2024 Project Editor writes for the panel build.
+        "package_order_hint": "UI_PATCH",
         "release_notes": {"neutral": {"LastUpdate": "", "OlderHistory": ""}},
     }
 
@@ -55,13 +59,21 @@ def copy_payload() -> None:
     shutil.rmtree(PKG, ignore_errors=True)
     (PKG / "modules").mkdir(parents=True)
     shutil.copy2(WASM, PKG / "modules" / WASM.name)
+    copy_panel_spb()
     # panel/package/ is laid out exactly as the files appear in the package.
-    if not any(PANEL.glob("InGamePanels/*.spb")):
-        print("warning: no InGamePanels/*.spb — the toolbar panel will not show (docs/research/panel.md)")
     for src in sorted(p for p in PANEL.rglob("*") if p.is_file()):
         dest = PKG / src.relative_to(PANEL)
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dest)
+
+
+def copy_panel_spb() -> None:
+    # A symlink (e.g. from an add-on linker on Windows) would commit only a path, not the binary.
+    if PANEL_SPB.is_symlink() or not PANEL_SPB.is_file() or PANEL_SPB.stat().st_size == 0:
+        sys.exit(f"{PANEL_SPB.relative_to(ROOT)} missing, empty or a link — rebuild it (docs/research/panel.md)")
+    dest = PKG / "InGamePanels" / PANEL_SPB.name
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(PANEL_SPB, dest)
 
 
 def layout() -> dict:

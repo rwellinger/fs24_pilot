@@ -21,14 +21,17 @@ and the MIT-licensed [msfs-input-viewer](https://github.com/spitice/msfs-input-v
 
 - `fspackagetool.exe` drives a partial sim instance → needs MSFS 2024 installed. Not usable on CI or the Mac.
 - No community XML → SPB compiler exists (only decompilers: spb2xml / spb2xml24). Writing our own needs the propdef GUIDs from the sim install and would break silently on sim updates → rejected.
-- **Decision:** build the `.spb` once with the sim's own Dev Mode Project Editor (part of the sim, nothing installed) and commit it as `panel/package/InGamePanels/fs24-pilot-panel.spb`. It is our own artefact (no SDK content). It only has to be rebuilt when the panel XML changes (id, name, url, icon, default size) — HTML/JS/CSS changes don't need it.
+- **Decision:** build the `.spb` once with the sim's own Dev Mode Project Editor (part of the sim, nothing installed) and commit it where the sim writes it: `panel/devmode/Packages/fs24-pilot-panel-build/InGamePanels/fs24-pilot-panel.spb` (`scripts/build_package.py` copies it into the package and refuses an empty file or a link). It is our own artefact (no SDK content). It only has to be rebuilt when the panel XML changes (id, name, url, icon, default size) — HTML/JS/CSS changes don't need it.
 
 ### Rebuild procedure (sim PC, ~5 min)
 
-1. Use `panel/devmode/` from a checkout of the repo on the sim PC (or a copy of just that folder, outside `Community/`). The build output folders are gitignored.
-2. MSFS 2024 → Developer Mode on → *Tools → Project Editor* → *File → Open project* → `fs24-pilot-panel-build.xml` (menu names not yet verified on 2024 — correct them here after the first build).
-3. *Build All* (or Build on the package). Console should report the SPB asset group as built.
-4. Copy `panel/devmode/Packages/fs24-pilot-panel-build/InGamePanels/fs24-pilot-panel.spb` to `panel/package/InGamePanels/` and commit it.
+1. Use `panel/devmode/` from a checkout of the repo on the sim PC. Intermediate folders (`_PackageInt/`, editor `*.xml.user`, generated thumbnail) are gitignored; `Packages/` is committed.
+2. MSFS 2024 → Developer Mode on → *Tools → Project Editor* → *File → Open project* → `fs24-pilot-panel-build.xml`. The 2024 editor asks for the package order hint (`UI_PATCH`, already stored in the package XML), company/creator (`thWelly`); leave include/exclude filters empty.
+3. *Build All* (not *Build & Export*). Output: `panel/devmode/Packages/fs24-pilot-panel-build/` (`.spb`, `layout.json`, `manifest.json`).
+4. If an add-on linker on the sim PC turned the output into a link, replace it with the real file before committing.
+5. Commit `panel/devmode/` (first build: 2026-11-19, SPB 670 bytes).
+
+The manifest the editor writes shows the 2024 fields (`package_order_hint`, `minimum_compatibility_version`, `builder`, `export_type`); our package manifest takes over `package_order_hint: UI_PATCH`.
 
 ## 3. CommBus
 

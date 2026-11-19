@@ -47,7 +47,7 @@ Free flight, Dev Mode console open (filter `fs24-pilot`), toolbar panel open.
 
 ## Acceptance criteria
 
-- [ ] 5 landings with the C172 and 3 with an airliner: grade + fpm + G in the console; fpm within ±10 % of the sim's touchdown velocity (deviation documented).
+- [ ] 5 landings with the C172 and 3 with a jet (Phenom 300E instead of an airliner, user decision — the detection has no airliner-specific path): grade + fpm + G in the console; fpm within ±10 % of the sim's touchdown velocity (deviation documented).
 - [ ] Bounce detected and counted on a provoked bounce.
 - [ ] Touch-and-go yields two separate landings.
 - [ ] H145 landing produces a rotorcraft rating.

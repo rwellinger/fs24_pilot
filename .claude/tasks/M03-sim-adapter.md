@@ -35,6 +35,8 @@ Panel display (M04), runway placement (M05).
 
 - C172 #1 (0.2.0): ours −220 fpm, sim −242 fpm (9 %); pitch ours 9.3 vs sim raw −9.2 → `PITCH_SIGN = -1` confirmed; gear flags `111`; phases Idle → Rolling → Airborne → Landed; panel received the landing.
 - G read 0.96 at touchdown (average over the flare) → switched to the peak after contact (0.3.0, see `docs/architecture.md`).
+- 0.3.1, C172 touch-and-gos: −19 / −18 fpm 1.02 G BUTTER; −103 / −106 fpm 1.12 G GREAT; −303 / −285 fpm (6 %) 1.41 G ACCEPTABLE, pitch 2.4° (flat, fast). Peak G scales with the descent rate. Touch-and-go yields separate landings (Landed → Airborne → Landed). Gear `101` 0.3 s after one contact: one main wheel lifted while the other stayed down — not a bounce by definition (all mains must leave the ground).
+- Bounce not yet provoked: the user's sim habits fly the correct approach speed.
 - `ATC MODEL` observed: `C172`, `DA42`, `C208`, `KODIAK`, `P46` (M500), `850` (TBM 850), `BE60` (Duke), `$$:PHENOM 300E` (FSReborn) → vendor free text, not ICAO. 0.3.1 logs `TITLE` with the aircraft line for M06 matching.
 - 0.3.0 also drops the M01 tick and logs `aircraft … -> profile …` once per change.
 

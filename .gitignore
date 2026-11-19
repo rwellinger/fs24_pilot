@@ -32,3 +32,5 @@ cmake-build-*/
 /panel/devmode/PackagesMetadata/
 /panel/devmode/PublishingGroupsContent/
 /panel/devmode/PublishingGroupsMetadata/
+/panel/devmode/PackageDefinitions/*/ContentInfo/
+*.xml.user

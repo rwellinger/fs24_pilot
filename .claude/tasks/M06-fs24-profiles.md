@@ -12,6 +12,7 @@ Profiles cover the FS24 default fleet, the HPG H145 and the user's add-ons; unkn
 - Matching on `ATC MODEL` (icao_type_designator), fallback `TITLE` substring; document per aircraft which value FS24 actually reports (table in `docs/research/aircraft.md`).
 - Airframe classification: MSFS `ENGINE TYPE` (0 piston, 1 jet, 3 helo turbine, 5 turboprop …) + `MAX GROSS WEIGHT` (lbs → kg) + engine count, mirroring xp_pilot's rules.
 - Lists: FS24 default fleet (Asobo/Microsoft), HPG H145, user's add-ons (list provided by the user in the issue).
+- **Must have (user priority): Kodiak 2024** (Daher/SimWorks Studios Kodiak 100). Check what `ATC MODEL` reports — ICAO designator is `KODI`, xp_pilot matches `KODK`. Profile: `turboprop` unless the test landings suggest otherwise.
 
 ## Out of scope
 

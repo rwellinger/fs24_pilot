@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "out"
 PKG = OUT / NAME
 WASM = ROOT / "wasm" / "build" / f"{NAME}.wasm"
-PANEL = ROOT / "panel"
+PANEL = ROOT / "panel" / "package"
 VERSION = (ROOT / "wasm" / "VERSION").read_text(encoding="utf-8").strip()
 
 # Windows FILETIME: 100 ns ticks since 1601-01-01 UTC.
@@ -55,8 +55,10 @@ def copy_payload() -> None:
     shutil.rmtree(PKG, ignore_errors=True)
     (PKG / "modules").mkdir(parents=True)
     shutil.copy2(WASM, PKG / "modules" / WASM.name)
-    # Panel files (M01+) are laid out in panel/ exactly as they appear in the package.
-    for src in sorted(p for p in PANEL.rglob("*") if p.is_file() and p.name != ".gitkeep"):
+    # panel/package/ is laid out exactly as the files appear in the package.
+    if not any(PANEL.glob("InGamePanels/*.spb")):
+        print("warning: no InGamePanels/*.spb — the toolbar panel will not show (docs/research/panel.md)")
+    for src in sorted(p for p in PANEL.rglob("*") if p.is_file()):
         dest = PKG / src.relative_to(PANEL)
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dest)

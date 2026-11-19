@@ -14,6 +14,14 @@ Prove the UI path before porting logic: a toolbar entry opens our panel, and the
 4. Can the module (or the panel itself) open/show the panel on demand (touchdown)? If not: docked panel that stays open, document the UX.
 5. Panel → WASM direction (e.g. "request history"): works via CommBus? Needed for M07.
 
+## Answers (2026-11-19, details in `docs/research/panel.md`)
+
+1. `.spb` is mandatory (compiled `InGamePanels` XML).
+2. No way without the sim: `fspackagetool` drives a sim instance. → Build once in the Dev Mode Project Editor, commit the `.spb`.
+3. Panel JS is killed when the panel closes → receives CommBus only while open. Module owns state, panel asks with `panel_ready`.
+4. No supported way to open a toolbar panel from WASM/JS outside missions → no auto-open; panel stays docked or is opened after landing.
+5. Panel → WASM via `callWasm` — implemented in the spike, to be confirmed in the sim.
+
 ## Scope
 
 - `panel/` laid out exactly as in the package (`html_ui/InGamePanels/FS24Pilot/…`, `InGamePanels/…`), toolbar icon.

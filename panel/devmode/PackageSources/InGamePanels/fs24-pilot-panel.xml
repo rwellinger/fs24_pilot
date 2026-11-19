@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Source of package/InGamePanels/fs24-pilot-panel.spb. Rebuild the .spb only when this file changes (docs/research/panel.md). -->
+<SimBase.Document Type="InGamePanels" version="1,0">
+    <Filename>fs24-pilot-panel.spb</Filename>
+    <InGamePanels.InGamePanelDefinition
+        id="PANEL_FS24_PILOT"
+        Name="fs24 Pilot"
+        url="html_ui/InGamePanels/FS24Pilot/FS24Pilot.html"
+        resizeDirections="Both"
+        minWidth="20"
+        minHeight="12"
+        defaultWidth="28"
+        defaultHeight="30"
+        defaultTop="33"
+        defaultRight="2"
+        icon="ICON_TOOLBAR_FS24_PILOT"
+        buttonVisible="true"
+    >
+    </InGamePanels.InGamePanelDefinition>
+</SimBase.Document>

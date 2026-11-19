@@ -36,6 +36,7 @@ Panel display (M04), runway placement (M05).
 - C172 #1 (0.2.0): ours −220 fpm, sim −242 fpm (9 %); pitch ours 9.3 vs sim raw −9.2 → `PITCH_SIGN = -1` confirmed; gear flags `111`; phases Idle → Rolling → Airborne → Landed; panel received the landing.
 - G read 0.96 at touchdown (average over the flare) → switched to the peak after contact (0.3.0, see `docs/architecture.md`).
 - 0.3.1, C172 touch-and-gos: −19 / −18 fpm 1.02 G BUTTER; −103 / −106 fpm 1.12 G GREAT; −303 / −285 fpm (6 %) 1.41 G ACCEPTABLE, pitch 2.4° (flat, fast). Peak G scales with the descent rate. Touch-and-go yields separate landings (Landed → Airborne → Landed). Gear `101` 0.3 s after one contact: one main wheel lifted while the other stayed down — not a bounce by definition (all mains must leave the ground).
+- H145 (0.3.1): ours −25 fpm, sim −17 fpm (8 fpm absolute; a relative tolerance is meaningless near zero), pitch −2.0 / raw 2.0, gear `000` skids `00` → the H145 has no `GEAR IS ON GROUND` contacts at the mapped indices; skid contact came from the `SIM ON GROUND` fallback in `to_frame`, which works.
 - Bounce not yet provoked: the user's sim habits fly the correct approach speed.
 - `ATC MODEL` observed: `C172`, `DA42`, `C208`, `KODIAK`, `P46` (M500), `850` (TBM 850), `BE60` (Duke), `$$:PHENOM 300E` (FSReborn) → vendor free text, not ICAO. 0.3.1 logs `TITLE` with the aircraft line for M06 matching.
 - 0.3.0 also drops the M01 tick and logs `aircraft … -> profile …` once per change.
@@ -51,7 +52,7 @@ Free flight, Dev Mode console open (filter `fs24-pilot`), toolbar panel open.
 
 - [ ] 5 landings with the C172 and 3 with a jet (Phenom 300E instead of an airliner, user decision — the detection has no airliner-specific path): grade + fpm + G in the console; fpm within ±10 % of the sim's touchdown velocity (deviation documented).
 - [ ] Bounce detected and counted on a provoked bounce.
-- [ ] Touch-and-go yields two separate landings.
-- [ ] H145 landing produces a rotorcraft rating.
+- [x] Touch-and-go yields two separate landings. — 0.3.1, C172: Landed → Airborne → Landed, two landing lines.
+- [x] H145 landing produces a rotorcraft rating. — 0.3.1: Idle → Airborne (rotorcraft) → Landed, BUTTER −25 fpm 1.07 G.
 - [ ] Pause during approach does not corrupt the result.
 - [ ] No measurable FPS impact (WASM Debug callback times documented).

@@ -17,7 +17,7 @@ Profiles cover the FS24 default fleet, the HPG H145 and the user's add-ons; unkn
 
 ## Observed in the sim (0.3.0, classification only, no match list yet)
 
-Default fleet: `A20N` heavy_jet, `152` / `C152` light_ga, `C185` medium_ga, `C400TT` medium_ga, `SR22` medium_ga, `SF50` vlj, `TBM9` turboprop, `DA-40 NG` light_ga, `DA62` medium_ga, `DV20` light_ga, `HA420` vlj, `VL3` ultra_light, **`PC21` vlj (wrong: turboprop trainer, sim reports it as jet)**, `$$:PC12` turboprop, `$$:PA28` light_ga, `SIRIUS TL 3000` ultra_light, `STING S4` light_ga (check: LSA, maybe ultra_light), `BE36` medium_ga, `B350` turboprop.
+Default fleet: `A20N` heavy_jet, `152` / `C152` light_ga, `C185` medium_ga, `C400TT` medium_ga, `SR22` medium_ga, `SF50` vlj, `TBM9` turboprop, `DA-40 NG` light_ga, `DA62` medium_ga, `DV20` light_ga, `HA420` vlj, `VL3` ultra_light, **`PC21` vlj (wrong: turboprop trainer, sim reports it as jet → match list: turboprop)**, `$$:PC12` turboprop, `$$:PA28` light_ga, `SIRIUS TL 3000` ultra_light, **`STING S4` light_ga (wrong: user decision → ultra_light)**, `BE36` medium_ga, `B350` turboprop.
 Add-ons: `KODIAK` turboprop, `$$:PHENOM 300E` vlj, `P46` (M500) turboprop, `850` (TBM 850) turboprop, `BE60` (Black Square Turbine Duke) turboprop — correct, `C208` turboprop, `DA42` medium_ga.
 Helicopters: pending.
 

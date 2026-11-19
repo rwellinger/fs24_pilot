@@ -53,10 +53,13 @@ jobs:
           wasm/build.sh
           python scripts/build_package.py
 
-      # Artifact = the package folder; unzip it into the Community folder.
+      # Search root out/ keeps the fs24-pilot/ folder inside the artifact zip,
+      # so it can be unzipped straight into the Community folder.
       - uses: actions/upload-artifact@v7
         with:
           name: fs24-pilot
-          path: out/fs24-pilot/
+          path: |
+            out/
+            !out/*.zip
           if-no-files-found: error
           retention-days: 30

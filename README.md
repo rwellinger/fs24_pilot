@@ -7,7 +7,7 @@ Status: early development, see the GitHub milestones.
 ## Install
 
 1. Download the `fs24-pilot` artifact/release zip.
-2. Unzip it into your Community folder (MS Store: `%LOCALAPPDATA%\Packages\Microsoft.Limitless_8wekyb3d8bbwe\LocalCache\Packages\Community`).
+2. Unzip it into your Community folder — it contains the `fs24-pilot` folder (MS Store: `%LOCALAPPDATA%\Packages\Microsoft.Limitless_8wekyb3d8bbwe\LocalCache\Packages\Community`).
 3. Start MSFS 2024.
 
 ## Build

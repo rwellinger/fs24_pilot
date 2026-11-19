@@ -8,7 +8,10 @@
 // Replaced by view model + landing view in M04.
 class Fs24PilotPanel extends TemplateElement {
     connectedCallback() {
-        super.connectedCallback();
+        // Not every Coherent TemplateElement version defines it; an exception here would stop the panel silently.
+        if (super.connectedCallback) {
+            super.connectedCallback();
+        }
         this.el = {
             status: this.querySelector("#Status"),
             module: this.querySelector("#Module"),

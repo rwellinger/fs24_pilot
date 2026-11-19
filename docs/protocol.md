@@ -27,7 +27,7 @@ The receiver drops messages with another `protocol_version`; the panel shows a m
 
 | type | payload | meaning |
 |---|---|---|
-| `hello` | `{ "module_version": "0.1.1", "ticks": 12 }` | answer to `panel_ready` (M01 spike) |
+| `hello` | `{ "module_version": "0.1.2", "ticks": 12 }` | answer to `panel_ready` (M01 spike) |
 | `tick` | `{ "count": 13 }` | once per second (M01 spike, removed in M04) |
 
 M04 replaces the spike types with `state` (current landing + context) and `landing` (new landing completed); M07 adds `history`.

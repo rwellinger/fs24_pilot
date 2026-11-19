@@ -25,10 +25,14 @@ namespace
 
 std::string summary(const domain::Landing &landing)
 {
-    std::array<char, 160> buf{};
-    std::snprintf(buf.data(), buf.size(), "landing: %s %.0f fpm %.2f G, %d bounce(s), profile %s, runway %s",
+    std::array<char, 240> buf{};
+    std::snprintf(buf.data(), buf.size(),
+                  "landing: %s %.0f fpm %.2f G, %d bounce(s), wind %.0f kts (head %+.0f, cross %+.0f), profile %s, "
+                  "runway %s",
                   std::string(domain::label(landing.grade)).c_str(), static_cast<double>(landing.descent_fpm),
-                  static_cast<double>(landing.g_force), landing.bounce_count, landing.profile_name.c_str(),
+                  static_cast<double>(landing.g_force), landing.bounce_count,
+                  static_cast<double>(landing.wind_speed_kts), static_cast<double>(landing.wind.headwind_kts),
+                  static_cast<double>(landing.wind.crosswind_kts), landing.profile_name.c_str(),
                   landing.runway ? landing.runway->runway_ident.c_str() : "-");
     return buf.data();
 }

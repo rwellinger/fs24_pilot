@@ -142,6 +142,7 @@ TEST_CASE("Every transition and the landing summary are logged", "[landing_monit
     const auto &lines = fixture.logger.lines;
     REQUIRE(lines.size() >= 4);
     CHECK(lines.back().find("landing: HARD LANDING!") == 0);
+    CHECK(lines.back().find(", wind 0 kts (head ") != std::string::npos);
 }
 
 TEST_CASE("Repeated reports of the same aircraft are logged once", "[landing_monitor]")

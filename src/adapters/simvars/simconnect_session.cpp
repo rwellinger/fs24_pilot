@@ -8,6 +8,7 @@
 
 #include "adapters/simvars/simconnect_session.hpp"
 
+#include <array>
 #include <chrono>
 #include <cstdio>
 #include <utility>
@@ -40,13 +41,15 @@ enum Event : SIMCONNECT_CLIENT_EVENT_ID
     EVT_POSITION_CHANGED = 5,
 };
 
-template <std::size_t N> void add_fields(HANDLE sim, Definition definition, const std::array<SimVarField, N> &fields)
+template <std::size_t N, typename Note>
+void add_fields(HANDLE sim, Definition definition, const std::array<SimVarField, N> &fields, Note &&note_sent)
 {
     for (const SimVarField &field : fields)
     {
         const bool is_string = field.type == FieldType::String128;
         SimConnect_AddToDataDefinition(sim, definition, field.name, is_string ? nullptr : field.unit,
                                        is_string ? SIMCONNECT_DATATYPE_STRING128 : SIMCONNECT_DATATYPE_FLOAT64);
+        note_sent(field.name);
     }
 }
 
@@ -85,6 +88,7 @@ bool SimConnectSession::open()
     register_definitions();
     subscribe_events();
     SimConnect_RequestSystemState(sim_, REQ_SIM_STATE, "Sim");
+    note_sent("RequestSystemState Sim");
     request_aircraft();
     SimConnect_CallDispatch(sim_, dispatch, this);
     return true;
@@ -92,25 +96,63 @@ bool SimConnectSession::open()
 
 void SimConnectSession::register_definitions()
 {
-    add_fields(sim_, DEF_FRAME, FRAME_FIELDS);
-    add_fields(sim_, DEF_AIRCRAFT, AIRCRAFT_FIELDS);
+    const auto note = [this](const char *label) { note_sent(label); };
+    add_fields(sim_, DEF_FRAME, FRAME_FIELDS, note);
+    add_fields(sim_, DEF_AIRCRAFT, AIRCRAFT_FIELDS, note);
     SimConnect_RequestDataOnSimObject(sim_, REQ_FRAME, DEF_FRAME, SIMCONNECT_OBJECT_ID_USER_AIRCRAFT,
                                       SIMCONNECT_PERIOD_SIM_FRAME);
+    note_sent("RequestDataOnSimObject frame");
 }
 
 void SimConnectSession::subscribe_events()
 {
-    SimConnect_SubscribeToSystemEvent(sim_, EVT_SIM, "Sim");
-    SimConnect_SubscribeToSystemEvent(sim_, EVT_PAUSE, "Pause_EX1");
-    SimConnect_SubscribeToSystemEvent(sim_, EVT_AIRCRAFT_LOADED, "AircraftLoaded");
-    SimConnect_SubscribeToSystemEvent(sim_, EVT_FLIGHT_LOADED, "FlightLoaded");
-    SimConnect_SubscribeToSystemEvent(sim_, EVT_POSITION_CHANGED, "PositionChanged");
+    const std::array<std::pair<Event, const char *>, 5> events{{
+        {EVT_SIM, "Sim"},
+        {EVT_PAUSE, "Pause_EX1"},
+        {EVT_AIRCRAFT_LOADED, "AircraftLoaded"},
+        {EVT_FLIGHT_LOADED, "FlightLoaded"},
+        {EVT_POSITION_CHANGED, "PositionChanged"},
+    }};
+    for (const auto &[id, name] : events)
+    {
+        SimConnect_SubscribeToSystemEvent(sim_, id, name);
+        note_sent(name);
+    }
 }
 
 void SimConnectSession::request_aircraft()
 {
     SimConnect_RequestDataOnSimObject(sim_, REQ_AIRCRAFT, DEF_AIRCRAFT, SIMCONNECT_OBJECT_ID_USER_AIRCRAFT,
                                       SIMCONNECT_PERIOD_ONCE);
+    note_sent("RequestDataOnSimObject aircraft");
+}
+
+// Exceptions name the failing call only by its packet id; keep the startup calls and the
+// latest aircraft requests labelled so the log can say which one it was.
+void SimConnectSession::note_sent(const char *label)
+{
+    DWORD id = 0;
+    if (FAILED(SimConnect_GetLastSentPacketID(sim_, &id)))
+    {
+        return;
+    }
+    if (sent_.size() >= MAX_LABELLED_CALLS)
+    {
+        sent_.erase(sent_.begin() + STARTUP_CALLS_KEPT);
+    }
+    sent_.emplace_back(id, label);
+}
+
+const char *SimConnectSession::label_of(DWORD send_id) const
+{
+    for (const auto &[id, label] : sent_)
+    {
+        if (id == send_id)
+        {
+            return label;
+        }
+    }
+    return "?";
 }
 
 double SimConnectSession::sim_time_s() const
@@ -152,9 +194,9 @@ void SimConnectSession::handle(SIMCONNECT_RECV *data)
     case SIMCONNECT_RECV_ID_EXCEPTION:
     {
         const auto &exception = *static_cast<SIMCONNECT_RECV_EXCEPTION *>(data);
-        std::fprintf(stderr, "[fs24-pilot] SimConnect exception %lu (send id %lu, index %lu)\n",
+        std::fprintf(stderr, "[fs24-pilot] SimConnect exception %lu (send id %lu = %s, index %lu)\n",
                      static_cast<unsigned long>(exception.dwException), static_cast<unsigned long>(exception.dwSendID),
-                     static_cast<unsigned long>(exception.dwIndex));
+                     label_of(exception.dwSendID), static_cast<unsigned long>(exception.dwIndex));
         return;
     }
     default:

@@ -8,7 +8,10 @@
 
 #pragma once
 
+#include <cstddef>
 #include <functional>
+#include <utility>
+#include <vector>
 
 #include <MSFS/MSFS.h>
 #include <MSFS/MSFS_Vars.h>
@@ -45,19 +48,25 @@ class SimConnectSession
   private:
     static void CALLBACK dispatch(SIMCONNECT_RECV *data, DWORD size, void *ctx);
 
-    void   handle(SIMCONNECT_RECV *data);
-    void   handle_event(const SIMCONNECT_RECV_EVENT &event);
-    void   handle_data(const SIMCONNECT_RECV_SIMOBJECT_DATA &data);
-    void   register_definitions();
-    void   subscribe_events();
-    void   request_aircraft();
-    double sim_time_s() const;
+    void        handle(SIMCONNECT_RECV *data);
+    void        handle_event(const SIMCONNECT_RECV_EVENT &event);
+    void        handle_data(const SIMCONNECT_RECV_SIMOBJECT_DATA &data);
+    void        register_definitions();
+    void        subscribe_events();
+    void        request_aircraft();
+    double      sim_time_s() const;
+    void        note_sent(const char *label);
+    const char *label_of(DWORD send_id) const;
 
-    SessionHandlers handlers_;
-    HANDLE          sim_ = 0;
-    SimState        state_;
-    FsEVarId        sim_time_var_ = FS_VAR_INVALID_ID;
-    FsUnitId        seconds_unit_ = FS_INVALID_UNIT;
+    static constexpr std::size_t STARTUP_CALLS_KEPT = 48;
+    static constexpr std::size_t MAX_LABELLED_CALLS = 64;
+
+    SessionHandlers                             handlers_;
+    HANDLE                                      sim_ = 0;
+    SimState                                    state_;
+    FsEVarId                                    sim_time_var_ = FS_VAR_INVALID_ID;
+    FsUnitId                                    seconds_unit_ = FS_INVALID_UNIT;
+    std::vector<std::pair<DWORD, const char *>> sent_;
 };
 
 } // namespace fs24::adapters::simvars

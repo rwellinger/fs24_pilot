@@ -19,7 +19,7 @@ Profiles cover the FS24 default fleet, the HPG H145 and the user's add-ons; unkn
 
 Default fleet: `A20N` heavy_jet, `152` / `C152` light_ga, `C185` medium_ga, `C400TT` medium_ga, `SR22` medium_ga, `SF50` vlj, `TBM9` turboprop, `DA-40 NG` light_ga, `DA62` medium_ga, `DV20` light_ga, `HA420` vlj, `VL3` ultra_light, **`PC21` vlj (wrong: turboprop trainer, sim reports it as jet → match list: turboprop)**, `$$:PC12` turboprop, `$$:PA28` light_ga, `SIRIUS TL 3000` ultra_light, **`STING S4` light_ga (wrong: user decision → ultra_light)**, `BE36` medium_ga, `B350` turboprop.
 Add-ons: `KODIAK` turboprop, `$$:PHENOM 300E` vlj, `P46` (M500) turboprop, `850` (TBM 850) turboprop, `BE60` (Black Square Turbine Duke) turboprop — correct, `C208` turboprop, `DA42` medium_ga.
-Helicopters (0.3.1, with TITLE): `H145` turbine_helicopter ("Airbus H145 Civilian Livery 1"), `$$:R66 TURBINE` turbine_helicopter ("R66 N-BLU") — both correct; xp_pilot also maps R66 to turbine_helicopter.
+Helicopters (0.3.1, with TITLE): `H145` turbine_helicopter ("Airbus H145 Civilian Livery 1"), `$$:R66 TURBINE` turbine_helicopter ("R66 N-BLU") — both correct; xp_pilot also maps R66 to turbine_helicopter. **`CABRI G2` turbine_helicopter (wrong: piston → light_helicopter).** Cause: rotorcraft have no classification, every unmatched helicopter falls back to `turbine_helicopter` (xp_pilot behaviour) — H145/R66 are right only by that fallback. Fix: classify rotorcraft by `ENGINE TYPE` (piston → light_helicopter) in addition to the match list.
 
 ## Out of scope
 

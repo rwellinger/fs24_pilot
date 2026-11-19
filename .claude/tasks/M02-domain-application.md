@@ -31,7 +31,7 @@ Any SDK code, JSON persistence format (M07), real profiles (M06 — use xp_pilot
 
 ## Acceptance criteria
 
-- [ ] All ported xp_pilot cases relevant to landing pass (list mapped cases in the issue).
-- [ ] New tests: time-based smoothing independent of frame rate (20/60/120 fps give the same fpm ±2 %), pitch fix.
-- [ ] `LandingMonitor` end-to-end test with synthetic frames and fakes.
-- [ ] `make check` green; `make wasm` compiles the new sources for WASM (no exceptions, no threads).
+- [x] All ported xp_pilot cases relevant to landing pass (list mapped cases in the issue). — 64 cases / 194 assertions; mapping in issue #3.
+- [x] New tests: time-based smoothing independent of frame rate (20/60/120 fps give the same fpm ±2 %), pitch fix. — flare stays pitch-rate based (decision in `docs/architecture.md`); real pitch recorded and tested.
+- [x] `LandingMonitor` end-to-end test with synthetic frames and fakes. — `tests/test_landing_monitor.cpp`, fakes in `tests/fakes/`.
+- [x] `make check` green; `make wasm` compiles the new sources for WASM (no exceptions, no threads).

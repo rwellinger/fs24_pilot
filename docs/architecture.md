@@ -15,12 +15,12 @@ Clean Architecture with three rings plus a composition root and the panel. Goal:
    ui_bus/      ResultPublisher via fsCommBusCall ──────────────────┘
         │ implements ports
  src/application/       (use cases + ports)
-   LandingMonitor   frame → state machine → rating → repository + publisher
-   ports: RunwayProvider, LandingRepository, ResultPublisher, AircraftInfoProvider, Clock, Logger
+   LandingMonitor   frame → phase machine → rating → placement → repository + publisher
+   ports: AircraftInfoProvider, RunwayProvider, LandingRepository, ResultPublisher, Logger
         │
  src/domain/            (pure C++20, no I/O)
-   LandingDetector, FlightPhaseMachine, RatingPolicy, ProfileResolver, RunwayGeometry,
-   value types (Grade, Landing, Profile, FrameInput …)
+   LandingDetector, FlightPhaseMachine, rating_policy, ProfileResolver, runway_geometry,
+   TimeWindow, flare, wind, value types (Grade, Landing, LandingProfile, FrameInput …)
 ```
 
 ## Rules
@@ -38,14 +38,23 @@ Clean Architecture with three rings plus a composition root and the panel. Goal:
 2. `LandingMonitor::on_frame(FrameInput)` drives the phase machine and the detector.
 3. On a completed landing: `RatingPolicy` grades it, `RunwayProvider` places it on the runway (async; result attached when available), `LandingRepository` stores it, `ResultPublisher` sends it to the panel.
 
+## Decisions taken in M02
+
+- **No Clock port:** `FrameInput::sim_time_s` carries the sim time; a port would have no second implementation.
+- **Inactive frames** (pause, replay, slew) are dropped by `LandingMonitor` before they reach the domain — equivalent to xp_pilot freezing its counters.
+- **Smoothing** over a 0.5 s time window (`TimeWindow`) instead of 30 frames; verified frame-rate independent (20/60/120 fps within 2 %).
+- **Flare label** keeps xp_pilot's behaviour, which in fact rated the pitch *rate* (`Q`): |q| ≤ 1 °/s very good, nose dropping = late, rising = early. Fields are now named for what they hold; the real pitch attitude is recorded alongside. "Aggressive" is gone — it compared a rad/s value against 1 and never fired.
+- **Runway prefetch** also for rotorcraft (helipad distance); xp_pilot skipped it.
+- **Not ported:** flight logging, shutdown detection, user profile overrides (possible later milestone), VMC/IMC.
+
 ## Mapping from xp_pilot
 
 | xp_pilot | fs24_pilot |
 |---|---|
 | `landing_detector.*` | `domain/landing_detector.*` (time-based smoothing window instead of 30 frames) |
-| `flight_logger_logic.hpp` rating + profile parts | `domain/rating_policy.*`, `domain/profile_resolver.*` (split by responsibility) |
+| `flight_logger_logic.hpp` rating + profile parts | `domain/rating_policy.*`, `domain/profile.*` (split by responsibility) |
 | `flight_state_machine.*` | `domain/flight_phase_machine.*` (only the phases needed for landing/touch-and-go) |
-| `runway_geometry.hpp` | `domain/runway_geometry.hpp` |
+| `runway_geometry.hpp` | `domain/runway_geometry.*` |
 | `FlightStateMachine::Environment` | application ports |
 | `flight_logger.cpp` `read_frame()` | `adapters/simvars` |
 | `airport_lookup.cpp` + `apt.dat` | `adapters/facilities` |

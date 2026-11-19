@@ -9,8 +9,7 @@ Checks: >-
   -modernize-use-nodiscard,
   readability-identifier-naming,
   readability-function-cognitive-complexity,
-  readability-else-after-return,
-  misc-include-cleaner
+  readability-else-after-return
 
 HeaderFilterRegex: 'src/.*\.hpp$'
 

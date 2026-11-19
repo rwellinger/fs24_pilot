@@ -10,13 +10,14 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <string_view>
 
 namespace fs24::domain
 {
 
 // Ordered from best to worst; the rating is the worst grade of all criteria.
-enum class Grade
+enum class Grade : std::uint8_t
 {
     Butter,
     Great,

@@ -140,6 +140,37 @@ TEST_CASE("A low bounce before the nose gear counts as a bounce of the same land
     CHECK(landing->bounce_count == 1);
 }
 
+TEST_CASE("Contact flags dropping for a frame or two on the runway are not a bounce", "[landing_detector]")
+{
+    LandingDetector detector = armed_in_the_air();
+    Approach        approach;
+    approach.descend_to_touchdown(fixed_wing(detector));
+    for (int flicker = 0; flicker < 4; ++flicker)
+    {
+        detector.step_fixed_wing(approach.frame(true, false));
+        detector.step_fixed_wing(approach.frame(false, false)); // agl 0, 0.1 s without contact
+        detector.step_fixed_wing(approach.frame(false, false));
+    }
+    const auto landing = approach.nose_down(fixed_wing(detector));
+    REQUIRE(landing.has_value());
+    CHECK(landing->bounce_count == 0);
+}
+
+TEST_CASE("A low but long lift of the mains is a bounce", "[landing_detector]")
+{
+    LandingDetector detector = armed_in_the_air();
+    Approach        approach;
+    approach.descend_to_touchdown(fixed_wing(detector));
+    approach.agl_m = 0.1f;                  // ~0.3 ft
+    for (int frame = 0; frame < 6; ++frame) // 0.3 s
+    {
+        detector.step_fixed_wing(approach.frame(false, false));
+    }
+    approach.agl_m = 0.f;
+    detector.step_fixed_wing(approach.frame(true, false));
+    CHECK(detector.bounce_count() == 1);
+}
+
 TEST_CASE("A hop above the bounce limit leaves the first touchdown as the rated one", "[landing_detector]")
 {
     LandingDetector detector = armed_in_the_air();

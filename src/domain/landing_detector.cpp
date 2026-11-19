@@ -129,6 +129,10 @@ TouchdownKind LandingDetector::classify_main_gear_touchdown(const FrameInput &fr
     {
         return TouchdownKind::First;
     }
+    if (main_gear_lifted_ && !lift_was_real(frame))
+    {
+        return TouchdownKind::Flicker;
+    }
     if (main_gear_lifted_ && max_agl_since_touchdown_ft_ < BOUNCE_AGL_LIMIT_FT)
     {
         return TouchdownKind::Bounce;
@@ -143,6 +147,7 @@ void LandingDetector::record_main_gear_touchdown(TouchdownKind kind, const Frame
     case TouchdownKind::None:
         return;
     case TouchdownKind::Hop:
+    case TouchdownKind::Flicker:
         reset_lift_tracking();
         return;
     case TouchdownKind::Bounce:
@@ -174,6 +179,10 @@ void LandingDetector::track_main_gear_lift(const FrameInput &frame)
     {
         return;
     }
+    if (!main_gear_lifted_)
+    {
+        lifted_since_s_ = frame.sim_time_s;
+    }
     main_gear_lifted_  = true;
     const float agl_ft = frame.agl_m * units::METERS_TO_FEET;
     if (agl_ft > max_agl_since_touchdown_ft_)
@@ -186,6 +195,11 @@ void LandingDetector::remember_gear_contact(const FrameInput &frame)
 {
     previous_on_any_ = frame.on_any_gear;
     previous_on_all_ = frame.on_all_gear;
+}
+
+bool LandingDetector::lift_was_real(const FrameInput &frame) const
+{
+    return frame.sim_time_s - lifted_since_s_ >= LIFT_MIN_AIRBORNE_S || max_agl_since_touchdown_ft_ >= LIFT_MIN_AGL_FT;
 }
 
 void LandingDetector::reset_lift_tracking()

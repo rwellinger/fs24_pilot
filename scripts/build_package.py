@@ -90,7 +90,7 @@ def main() -> None:
     write_json(PKG / "layout.json", layout())
     write_json(PKG / "manifest.json", manifest())
     archive = zip_package()
-    print(f"{NAME} {VERSION} → {PKG.relative_to(ROOT)} + {archive.relative_to(ROOT)}")
+    print(f"{NAME} {VERSION} -> {PKG.relative_to(ROOT)} + {archive.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

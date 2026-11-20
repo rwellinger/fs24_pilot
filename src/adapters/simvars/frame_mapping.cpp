@@ -14,6 +14,8 @@ namespace fs24::adapters::simvars
 namespace
 {
 
+constexpr float FEET_PER_SECOND_TO_FPM = 60.f;
+
 // MSFS reports pitch positive nose-down (to verify in the sim against PLANE TOUCHDOWN PITCH DEGREES);
 // the domain wants nose-up positive. The body-X rotation follows the same convention.
 constexpr float PITCH_SIGN = -1.f;
@@ -57,6 +59,8 @@ domain::FrameInput to_frame(const RawFrame &raw, const SimState &state, bool is_
     frame.ground_speed_kts   = static_cast<float>(raw.ground_speed_kts);
     frame.vertical_speed_fpm = static_cast<float>(raw.vertical_speed_fpm);
     frame.g_force            = static_cast<float>(raw.g_force);
+    frame.sim_touchdown_descent_fpm =
+        -static_cast<float>(raw.touchdown_normal_velocity_fps) * FEET_PER_SECOND_TO_FPM; // reported downward-positive
     frame.pitch_deg          = PITCH_SIGN * static_cast<float>(raw.pitch_deg);
     frame.pitch_rate_deg_s   = PITCH_SIGN * static_cast<float>(raw.pitch_rate_deg_s);
     frame.bank_deg           = static_cast<float>(raw.bank_deg);

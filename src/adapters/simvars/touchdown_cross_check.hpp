@@ -35,13 +35,13 @@ class TouchdownCrossCheck final : public application::ResultPublisher
         const RawFrame       &raw = last_frame_();
         std::array<char, 200> buf{};
         std::snprintf(buf.data(), buf.size(),
-                      "cross-check: ours %.0f fpm, sim %.0f fpm; pitch ours %.1f, sim raw %.1f; gear c/l/r %d%d%d "
-                      "skids %d%d",
-                      static_cast<double>(landing.descent_fpm), -raw.touchdown_normal_velocity_fps * 60.0,
-                      static_cast<double>(landing.pitch_deg), raw.touchdown_pitch_deg,
-                      static_cast<int>(raw.gear_center_on_ground), static_cast<int>(raw.gear_left_on_ground),
-                      static_cast<int>(raw.gear_right_on_ground), static_cast<int>(raw.skid_front_on_ground),
-                      static_cast<int>(raw.skid_rear_on_ground));
+                      "cross-check: rated %.0f fpm, smoothed %.0f fpm, sim now %.0f fpm; pitch ours %.1f, sim raw "
+                      "%.1f; gear c/l/r %d%d%d skids %d%d",
+                      static_cast<double>(landing.descent_fpm), static_cast<double>(landing.smoothed_descent_fpm),
+                      -raw.touchdown_normal_velocity_fps * 60.0, static_cast<double>(landing.pitch_deg),
+                      raw.touchdown_pitch_deg, static_cast<int>(raw.gear_center_on_ground),
+                      static_cast<int>(raw.gear_left_on_ground), static_cast<int>(raw.gear_right_on_ground),
+                      static_cast<int>(raw.skid_front_on_ground), static_cast<int>(raw.skid_rear_on_ground));
         logger_.info(buf.data());
         next_.publish_landing(landing);
     }

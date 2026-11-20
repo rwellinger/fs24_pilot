@@ -105,6 +105,13 @@ TEST_CASE("Pitch is turned nose-up positive and the sim time is passed through",
     CHECK(frame.sim_time_s == Catch::Approx(42.0));
 }
 
+TEST_CASE("The sim's touchdown velocity becomes a negative descent rate in fpm", "[simvars]")
+{
+    simvars::RawFrame raw             = on_the_ground();
+    raw.touchdown_normal_velocity_fps = 3.43; // MSFS: downward positive
+    CHECK(simvars::to_frame(raw, running(), false).sim_touchdown_descent_fpm == Catch::Approx(-205.8f));
+}
+
 TEST_CASE("ATC MODEL yields the type designator from a localisation key or plain text", "[simvars]")
 {
     CHECK(simvars::type_designator_from_atc_model("TT:ATCCOM.AC_MODEL_C172.0.text") == "C172");

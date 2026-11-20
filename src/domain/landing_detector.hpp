@@ -78,6 +78,8 @@ class LandingDetector
     void                   track_impact(const FrameInput &frame);
     Landing                touchdown_from(const FrameInput &frame) const;
     std::optional<Landing> complete_when_impact_passed(const FrameInput &frame);
+    void                   await_sim_touchdown_value();
+    void                   adopt_sim_touchdown_value(const FrameInput &frame);
 
     TimeWindow agl_window_{SMOOTHING_WINDOW_S};
     TimeWindow bank_window_{SMOOTHING_WINDOW_S};
@@ -104,6 +106,12 @@ class LandingDetector
     std::optional<double>  impact_until_s_;
     float                  peak_g_ = 0;
     std::optional<Landing> completed_; // waiting for the impact window to pass
+
+    // The sim updates its touchdown capture on contact, possibly a frame later: a change from
+    // the value seen before the contact is the new reading.
+    float                previous_sim_touchdown_fpm_ = 0;
+    float                current_sim_touchdown_fpm_  = 0;
+    std::optional<float> sim_touchdown_before_contact_;
 };
 
 } // namespace fs24::domain

@@ -46,7 +46,7 @@ struct RawFrame
     double gear_extended_ratio;
     double autopilot_master;
     double slew_active;
-    double touchdown_normal_velocity_fps; // the sim's own touchdown capture, cross-check only
+    double touchdown_normal_velocity_fps; // the sim's own touchdown capture: the rated descent rate
     double touchdown_pitch_deg;
 };
 

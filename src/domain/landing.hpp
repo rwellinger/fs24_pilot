@@ -34,17 +34,18 @@ struct Landing
     bool is_rotorcraft = false;
 
     // Touchdown kinematics; for bounces those of the hardest main-gear contact.
-    float descent_fpm      = 0; // negative
-    float g_force          = 0;
-    float pitch_deg        = 0;
-    float pitch_rate_deg_s = 0;
-    float bank_deg         = 0;
-    float yaw_rate_deg_s   = 0;
-    float ias_kts          = 0;
-    float ground_speed_kts = 0;
-    float heading_true_deg = 0;
-    float float_time_s     = 0;
-    int   bounce_count     = 0;
+    float descent_fpm          = 0; // negative; the sim's touchdown capture, else smoothed_descent_fpm
+    float smoothed_descent_fpm = 0; // own measurement from the AGL window, kept for the cross-check
+    float g_force              = 0;
+    float pitch_deg            = 0;
+    float pitch_rate_deg_s     = 0;
+    float bank_deg             = 0;
+    float yaw_rate_deg_s       = 0;
+    float ias_kts              = 0;
+    float ground_speed_kts     = 0;
+    float heading_true_deg     = 0;
+    float float_time_s         = 0;
+    int   bounce_count         = 0;
 
     GateCrossing gate;
 

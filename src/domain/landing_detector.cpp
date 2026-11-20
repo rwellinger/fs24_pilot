@@ -39,6 +39,7 @@ std::optional<Landing> LandingDetector::step_fixed_wing(const FrameInput &frame)
 
     const TouchdownKind kind = classify_main_gear_touchdown(frame);
     record_main_gear_touchdown(kind, frame);
+    adopt_sim_touchdown_value(frame);
     track_impact(frame);
     track_main_gear_lift(frame);
 
@@ -69,6 +70,7 @@ std::optional<Landing> LandingDetector::step_rotorcraft(const FrameInput &frame)
     open_impact_window(frame);
     completed_                = touchdown_from(frame);
     completed_->is_rotorcraft = true;
+    await_sim_touchdown_value();
     return complete_when_impact_passed(frame);
 }
 
@@ -86,6 +88,8 @@ float LandingDetector::smoothed_vertical_speed_fpm(const FrameInput &frame) cons
 
 void LandingDetector::observe(const FrameInput &frame)
 {
+    previous_sim_touchdown_fpm_ = current_sim_touchdown_fpm_;
+    current_sim_touchdown_fpm_  = frame.sim_touchdown_descent_fpm;
     agl_window_.push(frame.agl_m, frame.sim_time_s);
     bank_window_.push(frame.bank_deg, frame.sim_time_s);
     yaw_rate_window_.push(frame.yaw_rate_deg_s, frame.sim_time_s);
@@ -158,6 +162,7 @@ void LandingDetector::record_main_gear_touchdown(TouchdownKind kind, const Frame
         break;
     }
     open_impact_window(frame);
+    sim_touchdown_before_contact_.reset(); // a reading from now on belongs to this contact
 
     if (below_gate_since_s_ && !float_time_s_)
     {
@@ -171,6 +176,7 @@ void LandingDetector::record_main_gear_touchdown(TouchdownKind kind, const Frame
     }
     touchdown_           = std::move(candidate);
     worst_fpm_magnitude_ = fpm_magnitude;
+    await_sim_touchdown_value();
 }
 
 void LandingDetector::track_main_gear_lift(const FrameInput &frame)
@@ -221,23 +227,44 @@ void LandingDetector::track_impact(const FrameInput &frame)
     }
 }
 
+void LandingDetector::await_sim_touchdown_value() { sim_touchdown_before_contact_ = previous_sim_touchdown_fpm_; }
+
+// Only within the impact window: past it the smoothed measurement stands.
+void LandingDetector::adopt_sim_touchdown_value(const FrameInput &frame)
+{
+    const bool within_window = impact_until_s_ && frame.sim_time_s <= *impact_until_s_;
+    if (!sim_touchdown_before_contact_ || !within_window ||
+        frame.sim_touchdown_descent_fpm == *sim_touchdown_before_contact_)
+    {
+        return;
+    }
+    Landing *rated = completed_ ? &*completed_ : (touchdown_ ? &*touchdown_ : nullptr);
+    if (rated != nullptr)
+    {
+        rated->descent_fpm   = frame.sim_touchdown_descent_fpm;
+        worst_fpm_magnitude_ = std::abs(rated->descent_fpm);
+    }
+    sim_touchdown_before_contact_.reset();
+}
+
 Landing LandingDetector::touchdown_from(const FrameInput &frame) const
 {
     Landing landing;
-    landing.descent_fpm       = smoothed_vertical_speed_fpm(frame);
-    landing.pitch_deg         = frame.pitch_deg;
-    landing.pitch_rate_deg_s  = frame.pitch_rate_deg_s;
-    landing.bank_deg          = bank_window_.average();
-    landing.yaw_rate_deg_s    = yaw_rate_window_.average();
-    landing.ias_kts           = frame.ias_kts;
-    landing.ground_speed_kts  = frame.ground_speed_kts;
-    landing.heading_true_deg  = frame.heading_true_deg;
-    landing.float_time_s      = float_time_s_.value_or(0.f);
-    landing.gate              = gate_;
-    landing.latitude_deg      = frame.latitude_deg;
-    landing.longitude_deg     = frame.longitude_deg;
-    landing.sim_time_s        = frame.sim_time_s;
-    landing.wind_speed_kts    = frame.wind_speed_kts;
+    landing.descent_fpm          = smoothed_vertical_speed_fpm(frame);
+    landing.smoothed_descent_fpm = landing.descent_fpm;
+    landing.pitch_deg            = frame.pitch_deg;
+    landing.pitch_rate_deg_s     = frame.pitch_rate_deg_s;
+    landing.bank_deg             = bank_window_.average();
+    landing.yaw_rate_deg_s       = yaw_rate_window_.average();
+    landing.ias_kts              = frame.ias_kts;
+    landing.ground_speed_kts     = frame.ground_speed_kts;
+    landing.heading_true_deg     = frame.heading_true_deg;
+    landing.float_time_s         = float_time_s_.value_or(0.f);
+    landing.gate                 = gate_;
+    landing.latitude_deg         = frame.latitude_deg;
+    landing.longitude_deg        = frame.longitude_deg;
+    landing.sim_time_s           = frame.sim_time_s;
+    landing.wind_speed_kts       = frame.wind_speed_kts;
     landing.wind              = wind_components(frame.wind_speed_kts, frame.wind_from_true_deg, frame.heading_true_deg);
     landing.wind_condition    = classify_wind(frame.wind_speed_kts);
     landing.flap_ratio        = frame.flap_ratio;
@@ -249,6 +276,7 @@ Landing LandingDetector::touchdown_from(const FrameInput &frame) const
 
 std::optional<Landing> LandingDetector::complete_when_impact_passed(const FrameInput &frame)
 {
+    adopt_sim_touchdown_value(frame);
     track_impact(frame);
     if (!completed_ || (impact_until_s_ && frame.sim_time_s < *impact_until_s_))
     {

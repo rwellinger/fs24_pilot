@@ -8,6 +8,8 @@
 
 #include <catch2/catch_amalgamated.hpp>
 
+#include <optional>
+
 #include "domain/landing_detector.hpp"
 #include "domain/units.hpp"
 #include "support.hpp"
@@ -327,4 +329,72 @@ TEST_CASE("The touchdown records real pitch attitude next to the pitch rate", "[
     CHECK(landing->pitch_deg == Catch::Approx(5.5f));
     CHECK(landing->pitch_rate_deg_s == Catch::Approx(-1.5f));
     CHECK(landing->flare == "Good, but late flare");
+}
+
+namespace
+{
+
+// Steps the detector with the sim's touchdown capture switching from `stale_fpm` to
+// `reading_fpm` `delay_frames` after main-gear contact (never if reading_fpm == stale_fpm).
+std::optional<fs24::domain::Landing> land_with_sim_reading(float stale_fpm, float reading_fpm, int delay_frames)
+{
+    LandingDetector detector = armed_in_the_air();
+    Approach        approach;
+    int             frames_on_ground = 0;
+    auto            sink             = [&](FrameInput frame)
+    {
+        frames_on_ground                = frame.on_any_gear ? frames_on_ground + 1 : 0;
+        const bool updated              = frames_on_ground > delay_frames;
+        frame.sim_touchdown_descent_fpm = updated ? reading_fpm : stale_fpm;
+        return detector.step_fixed_wing(frame);
+    };
+    approach.descend_to_touchdown(sink);
+    return approach.nose_down(sink);
+}
+
+} // namespace
+
+TEST_CASE("The sim's touchdown capture is the rated descent rate", "[landing_detector]")
+{
+    SECTION("updated on the contact frame")
+    {
+        const auto landing = land_with_sim_reading(-150.f, -206.f, 0);
+        REQUIRE(landing.has_value());
+        CHECK(landing->descent_fpm == Catch::Approx(-206.f));
+        CHECK(landing->smoothed_descent_fpm == Catch::Approx(-500.f).epsilon(0.02));
+    }
+    SECTION("updated a few frames later, within the impact window")
+    {
+        const auto landing = land_with_sim_reading(-150.f, -206.f, 3);
+        REQUIRE(landing.has_value());
+        CHECK(landing->descent_fpm == Catch::Approx(-206.f));
+    }
+    SECTION("the previous landing's value is not taken for this one")
+    {
+        const auto landing = land_with_sim_reading(-150.f, -150.f, 0);
+        REQUIRE(landing.has_value());
+        CHECK(landing->descent_fpm == Catch::Approx(-500.f).epsilon(0.02));
+    }
+    SECTION("a reading after the impact window is too late")
+    {
+        const auto landing = land_with_sim_reading(-150.f, -206.f, 10);
+        REQUIRE(landing.has_value());
+        CHECK(landing->descent_fpm == Catch::Approx(-500.f).epsilon(0.02));
+    }
+}
+
+TEST_CASE("A rotorcraft landing takes the sim's touchdown capture too", "[landing_detector]")
+{
+    LandingDetector detector = armed_in_the_air();
+    FrameInput      hover;
+    hover.sim_touchdown_descent_fpm = -80.f;
+    detector.step_rotorcraft(hover);
+
+    FrameInput skids                = fs24::test::parked();
+    skids.sim_touchdown_descent_fpm = -17.f;
+    detector.step_rotorcraft(skids);
+    skids.sim_time_s   = IMPACT_WINDOW_S;
+    const auto landing = detector.step_rotorcraft(skids);
+    REQUIRE(landing.has_value());
+    CHECK(landing->descent_fpm == Catch::Approx(-17.f));
 }

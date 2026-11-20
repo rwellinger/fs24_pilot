@@ -28,6 +28,9 @@ struct FrameInput
     float ground_speed_kts   = 0;
     float vertical_speed_fpm = 0; // the sim's own reading; fallback while the AGL window fills
     float g_force            = 0;
+    // The sim's own capture of the latest touchdown (negative): holds the previous landing's
+    // value until the next contact replaces it.
+    float sim_touchdown_descent_fpm = 0;
 
     float pitch_deg        = 0; // attitude, + = nose up
     float pitch_rate_deg_s = 0; // + = nose rising

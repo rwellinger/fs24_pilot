@@ -89,7 +89,8 @@ bool SimConnectSession::open()
     subscribe_events();
     SimConnect_RequestSystemState(sim_, REQ_SIM_STATE, "Sim");
     note_sent("RequestSystemState Sim");
-    request_aircraft();
+    // No aircraft request here: modules load at sim start, before a user aircraft exists
+    // (exception 3 on the object id). AircraftLoaded / FlightLoaded trigger it instead.
     SimConnect_CallDispatch(sim_, dispatch, this);
     return true;
 }

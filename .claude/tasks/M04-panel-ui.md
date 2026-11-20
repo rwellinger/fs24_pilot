@@ -18,6 +18,13 @@ The toolbar panel shows the latest landing like the xp_pilot popup.
 
 History list (M07), settings UI.
 
+## Implementation notes (2026-11-20, pulled ahead of the remaining M03 sim tests)
+
+- Domain `Rating { overall, CriterionGrades }`: every criterion graded on its own; `Landing::criteria` → payload `criteria` so the panel colours each metric without rating anything.
+- Payload additions (protocol v1, additive): `criteria`, `crosswind_side`, `wind_speed_kts`, `run_on` (`docs/protocol.md`).
+- Panel: `view_model.js` + `landing_view.js` build the DOM inside `#Content`; layout of xp_pilot's popup (banner, 3/2-column metrics, flare, context with GEAR NOT DOWN / AUTOLAND highlighted, runway SVG, footer with status, profile, version).
+- `panel/preview/` + `make preview`: browser preview with sample landings from the M03 flights; screenshots via headless Brave.
+
 ## Acceptance criteria
 
 - [ ] After a landing the panel shows all metrics within 1 s.

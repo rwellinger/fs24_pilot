@@ -12,6 +12,7 @@
 #include <string>
 
 #include "domain/grade.hpp"
+#include "domain/rating_policy.hpp"
 #include "domain/runway_fix.hpp"
 #include "domain/wind.hpp"
 
@@ -59,9 +60,10 @@ struct Landing
     bool  gear_down         = true;
     bool  autopilot_engaged = false;
 
-    std::string flare;
-    Grade       grade = Grade::Wasted;
-    std::string profile_name;
+    std::string     flare;
+    Grade           grade = Grade::Wasted; // the worst of `criteria`
+    CriterionGrades criteria;
+    std::string     profile_name;
 
     std::string              airport_ident;
     std::optional<RunwayFix> runway;

@@ -81,27 +81,37 @@ Grade grade_descent(float descent_fpm, const DescentThresholds &thresholds)
     return Grade::Wasted;
 }
 
-Grade rate_fixed_wing(const FixedWingTouchdown &touchdown, const DescentThresholds &thresholds)
+Rating rate_fixed_wing(const FixedWingTouchdown &touchdown, const DescentThresholds &thresholds)
 {
     const float effective_fpm = touchdown.descent_fpm / crosswind_allowance(touchdown.crosswind_kts, touchdown.wind);
-    if (effective_fpm > 0.f) // climbing on contact is not a landing anyone got right
-    {
-        return Grade::Wasted;
-    }
-    return worse(grade_descent(effective_fpm, thresholds), grade_against(touchdown.g_force, FIXED_WING_G_LIMITS));
+    CriterionGrades criteria;
+    // Climbing on contact is not a landing anyone got right.
+    criteria.descent = effective_fpm > 0.f ? Grade::Wasted : grade_descent(effective_fpm, thresholds);
+    criteria.g_force = grade_against(touchdown.g_force, FIXED_WING_G_LIMITS);
+    return {.overall = worse(criteria.descent, criteria.g_force), .criteria = criteria};
 }
 
-Grade rate_rotorcraft(const RotorcraftTouchdown &touchdown, const DescentThresholds &thresholds)
+Rating rate_rotorcraft(const RotorcraftTouchdown &touchdown, const DescentThresholds &thresholds)
 {
-    Grade worst = grade_descent(touchdown.descent_fpm, thresholds);
-    worst       = worse(worst, grade_against(std::abs(touchdown.bank_deg), ROTORCRAFT_BANK_LIMITS_DEG));
-    worst       = worse(worst, grade_against(std::abs(touchdown.yaw_rate_deg_s), ROTORCRAFT_YAW_LIMITS_DEG_S));
-    worst       = worse(worst, grade_against(touchdown.g_force, ROTORCRAFT_G_LIMITS));
+    CriterionGrades criteria;
+    criteria.descent  = grade_descent(touchdown.descent_fpm, thresholds);
+    criteria.g_force  = grade_against(touchdown.g_force, ROTORCRAFT_G_LIMITS);
+    criteria.bank     = grade_against(std::abs(touchdown.bank_deg), ROTORCRAFT_BANK_LIMITS_DEG);
+    criteria.yaw_rate = grade_against(std::abs(touchdown.yaw_rate_deg_s), ROTORCRAFT_YAW_LIMITS_DEG_S);
     if (touchdown.drift_kts < ROTORCRAFT_RUN_ON_KTS)
     {
-        worst = worse(worst, grade_against(touchdown.drift_kts, ROTORCRAFT_DRIFT_LIMITS_KTS));
+        criteria.drift = grade_against(touchdown.drift_kts, ROTORCRAFT_DRIFT_LIMITS_KTS);
     }
-    return worst;
+
+    Grade worst = worse(criteria.descent, criteria.g_force);
+    for (const std::optional<Grade> &grade : {criteria.bank, criteria.yaw_rate, criteria.drift})
+    {
+        if (grade)
+        {
+            worst = worse(worst, *grade);
+        }
+    }
+    return {.overall = worst, .criteria = criteria};
 }
 
 } // namespace fs24::domain

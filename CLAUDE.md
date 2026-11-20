@@ -9,6 +9,7 @@ Port the landing rating of `~/Workspace/x-plane/xp_pilot` (X-Plane 12) to Micros
 1. **WASM standalone module** (C++, `wasm/` + `src/`) — samples sim variables every sim frame, detects touchdowns, rates them, persists the last N landings, publishes results.
 2. **In-game toolbar panel** (HTML/JS, `panel/`) — displays the result. Receives data from the module via CommBus. Contains no rating logic. Its JS only runs while the panel is open, so the module owns all state and answers `panel_ready` (`docs/research/panel.md`).
    - `panel/package/` — laid out exactly as in the package (`html_ui/…`).
+   - `panel/preview/` — dev-only browser preview (`make preview`): the real panel JS/CSS with stubs for `TemplateElement`/CommBus and sample landings. Not packaged. Iterate on the panel here, verify in the sim at the end.
    - `panel/devmode/` — Dev Mode project that compiles the `.spb`; its output `Packages/fs24-pilot-panel-build/InGamePanels/fs24-pilot-panel.spb` is committed and copied into the package. Rebuild only when the panel XML changes (procedure in `docs/research/panel.md`).
 
 Sibling projects:
@@ -43,7 +44,7 @@ The dependency rule points inward. FS24/SDK updates must only touch adapters.
 - Host build: CMake + Catch2 amalgamated (`vendor/catch2`, BSL-1.0).
 - WASM build: `wasm/build.sh` — flags copied from fs24_streamdeck, compiles `wasm/src/module.cpp` plus every `src/**/*.cpp`.
 - Packaging: `scripts/build_package.py` (stdlib only) writes `manifest.json` + `layout.json`, no `fspackagetool`.
-- Panel: plain HTML/CSS/JS (Coherent GT), no framework, no bundler unless M04 proves it necessary.
+- Panel: plain HTML/CSS/JS (Coherent GT), no framework, no bundler. Layers: `transport.js` → `view_model.js` (formatting only) → `landing_view.js` (DOM). Flexbox, no CSS grid; sizes in `vh`; no `?.`/`??` (older JS engine).
 - Python 3 is only a build tool (SDK fetch, packaging). No npm in this repo.
 
 ## Development Setup — the sim PC stays clean

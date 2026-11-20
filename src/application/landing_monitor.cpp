@@ -105,21 +105,20 @@ void LandingMonitor::finish(domain::Landing landing)
 
 void LandingMonitor::rate(domain::Landing &landing) const
 {
-    if (landing.is_rotorcraft)
-    {
-        landing.grade = domain::rate_rotorcraft({.descent_fpm    = landing.descent_fpm,
-                                                 .drift_kts      = landing.ground_speed_kts,
-                                                 .bank_deg       = landing.bank_deg,
-                                                 .yaw_rate_deg_s = landing.yaw_rate_deg_s,
-                                                 .g_force        = landing.g_force},
-                                                profile_.thresholds);
-        return;
-    }
-    landing.grade = domain::rate_fixed_wing({.descent_fpm   = landing.descent_fpm,
-                                             .g_force       = landing.g_force,
-                                             .crosswind_kts = landing.wind.crosswind_kts,
-                                             .wind          = landing.wind_condition},
-                                            profile_.thresholds);
+    const domain::Rating rating = landing.is_rotorcraft
+                                      ? domain::rate_rotorcraft({.descent_fpm    = landing.descent_fpm,
+                                                                 .drift_kts      = landing.ground_speed_kts,
+                                                                 .bank_deg       = landing.bank_deg,
+                                                                 .yaw_rate_deg_s = landing.yaw_rate_deg_s,
+                                                                 .g_force        = landing.g_force},
+                                                                profile_.thresholds)
+                                      : domain::rate_fixed_wing({.descent_fpm   = landing.descent_fpm,
+                                                                 .g_force       = landing.g_force,
+                                                                 .crosswind_kts = landing.wind.crosswind_kts,
+                                                                 .wind          = landing.wind_condition},
+                                                                profile_.thresholds);
+    landing.grade               = rating.overall;
+    landing.criteria            = rating.criteria;
 }
 
 void LandingMonitor::place(domain::Landing &landing) const

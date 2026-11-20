@@ -1,21 +1,244 @@
+/*
+ * Layout of the xp_pilot landing popup. Flexbox only (Coherent GT's CSS grid support is
+ * partial), sizes in vh so the panel scales with the sim's resolution.
+ * Grade colours: 0 BUTTER, 1 GREAT, 2 ACCEPTABLE, 3 HARD, 4 WASTED.
+ */
+
 #Content {
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
     width: 100%;
     height: 100%;
-    min-width: 22vh;
-    min-height: 16vh;
-    padding: 1.2vh 1.4vh;
-    font-size: 1.8vh;
-    color: #fff;
+    min-width: 40vh;
+    padding: 1.2vh;
+    font-size: 1.7vh;
+    color: #ebeffa;
+    background-color: #0f1320;
 }
 
-#Status {
+.card {
+    box-sizing: border-box;
+    padding: 1.3vh 1.6vh;
+    border: 0.2vh solid #5c6577;
+    border-radius: 1vh;
+    background-color: rgba(23, 28, 46, 0.94);
+}
+
+.banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 4.6vh;
+    border-left: 0.6vh solid #5c6577;
+    border-radius: 0.6vh;
+    background-color: rgba(92, 101, 119, 0.16);
+}
+
+.grade-label {
+    font-size: 2.8vh;
     font-weight: bold;
-    margin-bottom: 0.8vh;
+    letter-spacing: 0.1vh;
+    color: #94a0b8;
 }
 
-#Log {
+.metrics {
+    margin-top: 1.4vh;
+}
+
+.metric-row {
+    display: flex;
+    margin-bottom: 1.2vh;
+}
+
+.metric {
+    box-sizing: border-box;
+    padding-right: 1vh;
+}
+
+.metric.columns-2 {
+    width: 50%;
+}
+
+.metric.columns-3 {
+    width: 33.3%;
+}
+
+.metric-label {
+    font-size: 1.3vh;
+    white-space: nowrap;
+    color: #8f9bb2;
+}
+
+.metric-value {
+    margin-top: 0.3vh;
+    font-size: 2.2vh;
+    font-weight: bold;
+}
+
+.flare {
+    color: #bfccdf;
+}
+
+.context {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 0.5vh;
+    font-size: 1.5vh;
+    color: #94a1b8;
+}
+
+.context span {
+    white-space: nowrap;
+}
+
+.context .separator {
+    margin: 0 0.8vh;
+}
+
+.context .warning {
+    font-weight: bold;
+}
+
+.runway {
+    margin-top: 1.4vh;
+}
+
+.runway-title,
+.runway-caption {
+    font-size: 1.4vh;
+    color: #99a8bf;
+}
+
+.runway-diagram {
+    display: block;
+    width: 100%;
+    margin: 0.5vh 0;
+}
+
+.runway-strip {
+    fill: #303034;
+}
+
+.runway-zone {
+    fill: #504e32;
+}
+
+.runway-centerline {
+    stroke: #d7d7d7;
+    stroke-width: 1.5;
+    stroke-dasharray: 14 12;
+}
+
+.runway-threshold {
+    fill: #ffffff;
+}
+
+.runway-touchdown {
+    fill: #e07a3c;
+    stroke: #ffffff;
+    stroke-width: 1.5;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
     margin-top: 0.8vh;
-    opacity: 0.7;
-    font-family: monospace;
+    font-size: 1.3vh;
+    color: #6f7b92;
+}
+
+/* ── grade colours ───────────────────────────────────────────────────────────── */
+
+.neutral {
+    color: #ebeffa;
+}
+
+.warning {
+    color: #ff8033;
+}
+
+.grade-0 {
+    color: #ffff00;
+}
+
+.grade-1 {
+    color: #40ff40;
+}
+
+.grade-2 {
+    color: #00cc00;
+}
+
+.grade-3 {
+    color: #ff8000;
+}
+
+.grade-4 {
+    color: #ff2121;
+}
+
+.card.grade-0 {
+    border-color: #ffff00;
+}
+
+.card.grade-0 .banner {
+    border-left-color: #ffff00;
+    background-color: rgba(255, 255, 0, 0.16);
+}
+
+.card.grade-1 {
+    border-color: #40ff40;
+}
+
+.card.grade-1 .banner {
+    border-left-color: #40ff40;
+    background-color: rgba(64, 255, 64, 0.16);
+}
+
+.card.grade-2 {
+    border-color: #00cc00;
+}
+
+.card.grade-2 .banner {
+    border-left-color: #00cc00;
+    background-color: rgba(0, 204, 0, 0.16);
+}
+
+.card.grade-3 {
+    border-color: #ff8000;
+}
+
+.card.grade-3 .banner {
+    border-left-color: #ff8000;
+    background-color: rgba(255, 128, 0, 0.16);
+}
+
+.card.grade-4 {
+    border-color: #ff2121;
+}
+
+.card.grade-4 .banner {
+    border-left-color: #ff2121;
+    background-color: rgba(255, 33, 33, 0.16);
+}
+
+.card.grade-0 .grade-label {
+    color: #ffff00;
+}
+
+.card.grade-1 .grade-label {
+    color: #40ff40;
+}
+
+.card.grade-2 .grade-label {
+    color: #00cc00;
+}
+
+.card.grade-3 .grade-label {
+    color: #ff8000;
+}
+
+.card.grade-4 .grade-label {
+    color: #ff2121;
 }

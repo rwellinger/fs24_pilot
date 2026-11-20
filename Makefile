@@ -10,7 +10,7 @@ PYTHON      ?= $(shell command -v python3 || command -v python)
 CXX_FILES    = $(shell find src tests wasm/src -name '*.cpp' -o -name '*.hpp' 2>/dev/null)
 TIDY_FILES   = $(shell find src/domain src/application src/adapters/profiles -name '*.cpp' 2>/dev/null; find src/adapters -name '*_mapping.cpp' 2>/dev/null)
 
-.PHONY: help sdk host test format format-check tidy check wasm package clean gh-build cleanup_builds cleanup_branches
+.PHONY: help sdk host test format format-check tidy check wasm package preview clean gh-build cleanup_builds cleanup_branches
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*## "; printf "Available targets:\n"} \
@@ -42,6 +42,9 @@ wasm: ## Compile the WASM module (stock LLVM on the Mac = compile check only; As
 
 package: wasm ## Assemble the Community package + zip in out/
 	$(PYTHON) scripts/build_package.py
+
+preview: ## Open the panel dev preview (real panel JS/CSS, sample landings, no sim) in the browser
+	open panel/preview/preview.html
 
 clean: ## Remove build output
 	rm -rf build out wasm/build

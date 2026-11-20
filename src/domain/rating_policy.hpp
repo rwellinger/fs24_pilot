@@ -9,6 +9,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 
 #include "domain/grade.hpp"
 #include "domain/wind.hpp"
@@ -41,6 +42,22 @@ struct RotorcraftTouchdown
 // Above this ground speed the forward movement is a deliberate run-on landing, not drift.
 inline constexpr float ROTORCRAFT_RUN_ON_KTS = 15.f;
 
+// Every criterion graded on its own, so a view can show which one decided.
+struct CriterionGrades
+{
+    Grade                descent = Grade::Wasted; // fixed wing: after the crosswind allowance
+    Grade                g_force = Grade::Wasted;
+    std::optional<Grade> drift; // rotorcraft below the run-on speed only
+    std::optional<Grade> bank;  // rotorcraft only
+    std::optional<Grade> yaw_rate;
+};
+
+struct Rating
+{
+    Grade           overall = Grade::Wasted; // the worst criterion
+    CriterionGrades criteria;
+};
+
 // A crosswind makes the same descent rate better flying: up to 40% allowance in a full
 // 30-knot crosswind, none in calm air.
 float crosswind_allowance(float crosswind_kts, WindCondition wind);
@@ -48,7 +65,7 @@ float crosswind_allowance(float crosswind_kts, WindCondition wind);
 Grade grade_descent(float descent_fpm, const DescentThresholds &thresholds);
 
 // The worst single criterion decides; a good one cannot rescue a bad one.
-Grade rate_fixed_wing(const FixedWingTouchdown &touchdown, const DescentThresholds &thresholds);
-Grade rate_rotorcraft(const RotorcraftTouchdown &touchdown, const DescentThresholds &thresholds);
+Rating rate_fixed_wing(const FixedWingTouchdown &touchdown, const DescentThresholds &thresholds);
+Rating rate_rotorcraft(const RotorcraftTouchdown &touchdown, const DescentThresholds &thresholds);
 
 } // namespace fs24::domain

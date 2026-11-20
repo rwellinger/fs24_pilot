@@ -25,8 +25,8 @@ RotorcraftTouchdown clean_set_down() { return {-1.f, 0.f, 0.5f, 0.5f, 1.01f}; }
 
 FixedWingTouchdown greaser() { return {-60.f, 1.05f, 0.f, WindCondition::Calm}; }
 
-Grade rate(const RotorcraftTouchdown &touchdown) { return rate_rotorcraft(touchdown, TURBINE_HELI_FPM); }
-Grade rate(const FixedWingTouchdown &touchdown) { return rate_fixed_wing(touchdown, LIGHT_GA_FPM); }
+Grade rate(const RotorcraftTouchdown &touchdown) { return rate_rotorcraft(touchdown, TURBINE_HELI_FPM).overall; }
+Grade rate(const FixedWingTouchdown &touchdown) { return rate_fixed_wing(touchdown, LIGHT_GA_FPM).overall; }
 
 } // namespace
 
@@ -153,4 +153,23 @@ TEST_CASE("wind strength is calm below 3 kts and light below 6 kts", "[wind]")
     CHECK(classify_wind(3.f) == WindCondition::Light);
     CHECK(classify_wind(5.9f) == WindCondition::Light);
     CHECK(classify_wind(6.f) == WindCondition::Steady);
+}
+
+TEST_CASE("The rating names the grade of every criterion", "[rating]")
+{
+    const Rating fixed = rate_fixed_wing({.descent_fpm = -150.f, .g_force = 1.8f}, LIGHT_GA_FPM);
+    CHECK(fixed.criteria.descent == Grade::Great);
+    CHECK(fixed.criteria.g_force == Grade::Acceptable);
+    CHECK(fixed.overall == Grade::Acceptable);
+    CHECK_FALSE(fixed.criteria.bank.has_value());
+
+    const Rating hover =
+        rate_rotorcraft({.descent_fpm = -40.f, .drift_kts = 4.f, .bank_deg = -1.f, .g_force = 1.f}, TURBINE_HELI_FPM);
+    REQUIRE(hover.criteria.drift.has_value());
+    CHECK(*hover.criteria.drift == Grade::Acceptable);
+    CHECK(hover.criteria.bank == Grade::Butter);
+    CHECK(hover.overall == Grade::Acceptable);
+
+    const Rating run_on = rate_rotorcraft({.descent_fpm = -40.f, .drift_kts = 20.f, .g_force = 1.f}, TURBINE_HELI_FPM);
+    CHECK_FALSE(run_on.criteria.drift.has_value());
 }

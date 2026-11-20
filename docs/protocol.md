@@ -27,21 +27,26 @@ The receiver drops messages with another `protocol_version`; the panel shows a m
 
 | type | payload | meaning |
 |---|---|---|
-| `hello` | `{ "module_version": "0.3.0" }` | answer to `panel_ready` |
+| `hello` | `{ "module_version": "0.4.0" }` | answer to `panel_ready` |
 | `landing` | see below | a landing was completed; also sent after `hello` when one exists |
 
-### `landing` payload (M03)
+### `landing` payload (M04)
 
 ```json
 { "grade": "GREAT LANDING!", "grade_index": 1, "profile": "light_ga", "is_rotorcraft": false,
+  "criteria": { "descent": 1, "g_force": 0, "drift": null, "bank": null, "yaw_rate": null },
   "descent_fpm": -182, "g_force": 1.23, "bounce_count": 0, "float_time_s": 3.4,
   "ias_kts": 62, "ground_speed_kts": 60, "pitch_deg": 4.5, "bank_deg": 0.8, "yaw_rate_deg_s": 0.3,
-  "flare": "Very good flare", "headwind_kts": 5, "crosswind_kts": -3,
+  "flare": "Very good flare", "headwind_kts": 5, "crosswind_kts": -3, "crosswind_side": "left",
+  "wind_speed_kts": 6, "run_on": false,
   "flap_ratio": 1.00, "gear_down": true, "autopilot_engaged": false,
   "airport": "", "distance_to_surface_m": -1,
   "runway": null }
 ```
 
-`runway` is `{ "ident", "distance_from_threshold_m", "centerline_offset_m", "length_m" }` once M05 places landings. `grade_index` 0 (BUTTER) … 4 (WASTED) drives the colour.
+- Grades are indices 0 (BUTTER) … 4 (WASTED); `grade_index` is the landing's grade and colours banner and border.
+- `criteria` grades each criterion on its own (the landing's grade is the worst), so the panel colours each metric by the grade it earned. `drift`, `bank`, `yaw_rate` are rotorcraft only; `drift` is `null` on a run-on landing (`run_on: true`, ground speed ≥ 15 kts). Fixed-wing `descent` is graded after the crosswind allowance.
+- `crosswind_kts` is positive from the right; `crosswind_side` spells it out.
+- `runway` is `{ "ident", "distance_from_threshold_m", "centerline_offset_m", "length_m" }` once M05 places landings.
 
-M04 replaces the spike types (`hello` keeps the version handshake); M07 adds `history`.
+Fields are only ever added within protocol version 1; renaming or removing one bumps it. M07 adds `history`.

@@ -33,6 +33,30 @@ TEST_CASE("The landing payload carries the rating and metrics the panel shows", 
     CHECK(json.find(R"("runway":null)") != std::string::npos);
 }
 
+TEST_CASE("The payload grades every criterion so the panel can colour each metric", "[ui_protocol]")
+{
+    fs24::domain::Landing landing;
+    landing.criteria.descent   = fs24::domain::Grade::Great;
+    landing.criteria.g_force   = fs24::domain::Grade::Hard;
+    landing.wind.crosswind_kts = -13.f;
+    const std::string json     = landing_payload(landing);
+    CHECK(json.find(R"("criteria":{"descent":1,"g_force":3,"drift":null,"bank":null,"yaw_rate":null})") !=
+          std::string::npos);
+    CHECK(json.find(R"("crosswind_side":"left")") != std::string::npos);
+    CHECK(json.find(R"("run_on":false)") != std::string::npos);
+}
+
+TEST_CASE("A rotorcraft landing without a drift grade is a run-on", "[ui_protocol]")
+{
+    fs24::domain::Landing landing;
+    landing.is_rotorcraft     = true;
+    landing.criteria.bank     = fs24::domain::Grade::Butter;
+    landing.criteria.yaw_rate = fs24::domain::Grade::Butter;
+    CHECK(landing_payload(landing).find(R"("run_on":true)") != std::string::npos);
+    landing.criteria.drift = fs24::domain::Grade::Acceptable;
+    CHECK(landing_payload(landing).find(R"("drift":2)") != std::string::npos);
+}
+
 TEST_CASE("A placed landing carries its runway object", "[ui_protocol]")
 {
     fs24::domain::Landing landing;

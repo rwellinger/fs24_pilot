@@ -15,6 +15,8 @@
     <link rel="import" href="/templates/ingameUi/ingameUi.html" />
 
     <script type="text/javascript" src="./transport.js"></script>
+    <script type="text/javascript" src="./view_model.js"></script>
+    <script type="text/javascript" src="./landing_view.js"></script>
     <script type="text/javascript" src="./FS24Pilot.js"></script>
 </head>
 <body class="border-box">
@@ -22,12 +24,8 @@
         <!-- content-fit="false": with "true" the frame snaps back to the content size on resize. -->
         <ingame-ui id="FS24Pilot_Frame" panel-id="PANEL_FS24_PILOT" class="ingameUiFrame panelInvisible"
                    title="fs24 Pilot" content-fit="false">
-            <div id="Content">
-                <div id="Status">waiting for module…</div>
-                <div id="Module">module: –</div>
-                <div id="Landing">last landing: –</div>
-                <div id="Log"></div>
-            </div>
+            <!-- Filled by landing_view.js. -->
+            <div id="Content"></div>
         </ingame-ui>
     </fs24-pilot-panel>
 </body>

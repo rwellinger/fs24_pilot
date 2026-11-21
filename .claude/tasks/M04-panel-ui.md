@@ -27,6 +27,8 @@ History list (M07), settings UI.
 
 - Sim check 0.4.1: renders as in the preview. Bug found: "GEAR NOT DOWN" on the FSReborn Phenom — its gear system leaves `GEAR TOTAL PCT EXTENDED` at 0 → 0.4.3 treats the gear as down when a wheel touches the runway.
 
+- Scaling (user request, large TV): content scales with the panel width (`panel_scale.js`, all CSS sizes in em). No size/position settings: the sim remembers panel size and position per panel, and no API places a toolbar panel (`docs/research/panel.md`).
+
 ## Acceptance criteria
 
 - [x] After a landing the panel shows all metrics within 1 s. — 0.4.1, Phenom 300E (`testdata/Screenshot 2026-11-21 220902.png`).

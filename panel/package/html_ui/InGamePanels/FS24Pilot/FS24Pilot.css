@@ -1,6 +1,7 @@
 /*
  * Layout of the xp_pilot landing popup. Flexbox only (Coherent GT's CSS grid support is
- * partial), sizes in vh so the panel scales with the sim's resolution.
+ * partial). Every size is in em of #Content, whose font size panel_scale.js derives from the
+ * panel width: dragging the panel bigger scales the whole content.
  * Grade colours: 0 BUTTER, 1 GREAT, 2 ACCEPTABLE, 3 HARD, 4 WASTED.
  */
 
@@ -10,18 +11,18 @@
     flex-direction: column;
     width: 100%;
     height: 100%;
-    min-width: 40vh;
-    padding: 1.2vh;
-    font-size: 1.7vh;
+    overflow: hidden;
+    padding: 0.706em;
+    font-size: 1.7vh; /* until panel_scale.js sets it from the panel width */
     color: #ebeffa;
     background-color: #0f1320;
 }
 
 .card {
     box-sizing: border-box;
-    padding: 1.3vh 1.6vh;
-    border: 0.2vh solid #5c6577;
-    border-radius: 1vh;
+    padding: 0.765em 0.941em;
+    border: 0.118em solid #5c6577;
+    border-radius: 0.588em;
     background-color: rgba(23, 28, 46, 0.94);
 }
 
@@ -29,31 +30,31 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 4.6vh;
-    border-left: 0.6vh solid #5c6577;
-    border-radius: 0.6vh;
+    height: 2.706em;
+    border-left: 0.353em solid #5c6577;
+    border-radius: 0.353em;
     background-color: rgba(92, 101, 119, 0.16);
 }
 
 .grade-label {
-    font-size: 2.8vh;
+    font-size: 1.647em;
     font-weight: bold;
-    letter-spacing: 0.1vh;
+    letter-spacing: 0.036em;
     color: #94a0b8;
 }
 
 .metrics {
-    margin-top: 1.4vh;
+    margin-top: 0.824em;
 }
 
 .metric-row {
     display: flex;
-    margin-bottom: 1.2vh;
+    margin-bottom: 0.706em;
 }
 
 .metric {
     box-sizing: border-box;
-    padding-right: 1vh;
+    padding-right: 0.588em;
 }
 
 .metric.columns-2 {
@@ -65,14 +66,14 @@
 }
 
 .metric-label {
-    font-size: 1.3vh;
+    font-size: 0.765em;
     white-space: nowrap;
     color: #8f9bb2;
 }
 
 .metric-value {
-    margin-top: 0.3vh;
-    font-size: 2.2vh;
+    margin-top: 0.136em;
+    font-size: 1.294em;
     font-weight: bold;
 }
 
@@ -83,8 +84,8 @@
 .context {
     display: flex;
     flex-wrap: wrap;
-    margin-top: 0.5vh;
-    font-size: 1.5vh;
+    margin-top: 0.333em;
+    font-size: 0.882em;
     color: #94a1b8;
 }
 
@@ -93,7 +94,7 @@
 }
 
 .context .separator {
-    margin: 0 0.8vh;
+    margin: 0 0.533em;
 }
 
 .context .warning {
@@ -101,19 +102,19 @@
 }
 
 .runway {
-    margin-top: 1.4vh;
+    margin-top: 0.824em;
 }
 
 .runway-title,
 .runway-caption {
-    font-size: 1.4vh;
+    font-size: 0.824em;
     color: #99a8bf;
 }
 
 .runway-diagram {
     display: block;
     width: 100%;
-    margin: 0.5vh 0;
+    margin: 0.294em 0;
 }
 
 .runway-strip {
@@ -143,8 +144,8 @@
 .footer {
     display: flex;
     justify-content: space-between;
-    margin-top: 0.8vh;
-    font-size: 1.3vh;
+    margin-top: 0.615em;
+    font-size: 0.765em;
     color: #6f7b92;
 }
 

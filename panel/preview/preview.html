@@ -14,14 +14,15 @@
         body { margin: 0; background: #2b2f38; font-family: "Segoe UI", Roboto, sans-serif; }
         #Picker { padding: 1vh; }
         #Picker button { margin-right: 0.5vh; }
-        /* Stand-in for the sim's ingame-ui frame at a typical toolbar panel size. */
-        #Frame { width: 44vh; height: 56vh; margin: 1vh; }
+        /* Stand-in for the sim's ingame-ui frame: drag the corner to resize like in the sim. */
+        #Frame { width: 44vh; height: 56vh; margin: 1vh; resize: both; overflow: hidden; }
     </style>
     <script src="sim_stubs.js"></script>
     <script src="sample_landings.js"></script>
     <script src="../package/html_ui/InGamePanels/FS24Pilot/transport.js"></script>
     <script src="../package/html_ui/InGamePanels/FS24Pilot/view_model.js"></script>
     <script src="../package/html_ui/InGamePanels/FS24Pilot/landing_view.js"></script>
+    <script src="../package/html_ui/InGamePanels/FS24Pilot/panel_scale.js"></script>
 </head>
 <body>
     <div id="Picker"></div>

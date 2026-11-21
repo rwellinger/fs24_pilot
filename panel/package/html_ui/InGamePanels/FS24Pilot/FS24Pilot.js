@@ -13,7 +13,9 @@ class Fs24PilotPanel extends TemplateElement {
             super.connectedCallback();
         }
         this.moduleVersion = "";
-        this.view = new Fs24LandingView(this.querySelector("#Content"));
+        const content = this.querySelector("#Content");
+        this.view = new Fs24LandingView(content);
+        this.scale = new Fs24PanelScale(content);
         this.transport = new Fs24Transport(
             (type, payload) => this.onMessage(type, payload),
             (version) =>
@@ -23,6 +25,15 @@ class Fs24PilotPanel extends TemplateElement {
             this.view.showStatus("asking module…");
             this.transport.send("panel_ready");
         });
+    }
+
+    disconnectedCallback() {
+        if (super.disconnectedCallback) {
+            super.disconnectedCallback();
+        }
+        if (this.scale) {
+            this.scale.stop();
+        }
     }
 
     onMessage(type, payload) {

@@ -44,7 +44,7 @@ The dependency rule points inward. FS24/SDK updates must only touch adapters.
 - Host build: CMake + Catch2 amalgamated (`vendor/catch2`, BSL-1.0).
 - WASM build: `wasm/build.sh` — flags copied from fs24_streamdeck, compiles `wasm/src/module.cpp` plus every `src/**/*.cpp`.
 - Packaging: `scripts/build_package.py` (stdlib only) writes `manifest.json` + `layout.json`, no `fspackagetool`.
-- Panel: plain HTML/CSS/JS (Coherent GT), no framework, no bundler. Layers: `transport.js` → `view_model.js` (formatting only) → `landing_view.js` (DOM). Flexbox, no CSS grid; sizes in `vh`; no `?.`/`??` (older JS engine).
+- Panel: plain HTML/CSS/JS (Coherent GT), no framework, no bundler. Layers: `transport.js` → `view_model.js` (formatting only) → `landing_view.js` (DOM). Flexbox, no CSS grid; sizes in `em` of `#Content`, whose font size `panel_scale.js` derives from the panel width (drag the panel to scale it); no `?.`/`??` (older JS engine).
 - Python 3 is only a build tool (SDK fetch, packaging). No npm in this repo.
 
 ## Development Setup — the sim PC stays clean

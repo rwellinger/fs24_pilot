@@ -25,9 +25,11 @@ History list (M07), settings UI.
 - Panel: `view_model.js` + `landing_view.js` build the DOM inside `#Content`; layout of xp_pilot's popup (banner, 3/2-column metrics, flare, context with GEAR NOT DOWN / AUTOLAND highlighted, runway SVG, footer with status, profile, version).
 - `panel/preview/` + `make preview`: browser preview with sample landings from the M03 flights; screenshots via headless Brave.
 
+- Sim check 0.4.1: renders as in the preview. Bug found: "GEAR NOT DOWN" on the FSReborn Phenom — its gear system leaves `GEAR TOTAL PCT EXTENDED` at 0 → 0.4.3 treats the gear as down when a wheel touches the runway.
+
 ## Acceptance criteria
 
-- [ ] After a landing the panel shows all metrics within 1 s.
+- [x] After a landing the panel shows all metrics within 1 s. — 0.4.1, Phenom 300E (`testdata/Screenshot 2026-11-21 220902.png`).
 - [ ] Rotorcraft landing shows the rotorcraft layout.
 - [ ] Protocol version mismatch shows a clear message instead of garbage.
-- [ ] Panel readable in VR/2D at default toolbar panel size (screenshot in the issue).
+- [x] Panel readable in VR/2D at default toolbar panel size (screenshot in the issue). — 2D verified (`testdata/`), VR not tested.

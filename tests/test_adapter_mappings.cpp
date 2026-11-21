@@ -163,3 +163,17 @@ TEST_CASE("The memory repository keeps the newest landings up to its capacity", 
     REQUIRE(repository.latest().has_value());
     CHECK(repository.latest()->bounce_count == 3);
 }
+
+TEST_CASE("Gear is down when extended or when a wheel touches the runway", "[simvars]")
+{
+    simvars::RawFrame raw   = on_the_ground();
+    raw.gear_extended_ratio = 0.0; // add-on gear system that never reports extension
+    CHECK(simvars::to_frame(raw, running(), false).gear_down);
+
+    simvars::RawFrame belly{};
+    belly.sim_on_ground = 1;
+    CHECK_FALSE(simvars::to_frame(belly, running(), false).gear_down);
+
+    belly.gear_extended_ratio = 1.0;
+    CHECK(simvars::to_frame(belly, running(), false).gear_down);
+}

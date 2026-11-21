@@ -16,7 +16,7 @@ namespace
 
 constexpr float FEET_PER_SECOND_TO_FPM = 60.f;
 
-// MSFS reports pitch positive nose-down (to verify in the sim against PLANE TOUCHDOWN PITCH DEGREES);
+// MSFS reports pitch positive nose-down (verified in M03 against PLANE TOUCHDOWN PITCH DEGREES);
 // the domain wants nose-up positive. The body-X rotation follows the same convention.
 constexpr float PITCH_SIGN = -1.f;
 
@@ -26,6 +26,11 @@ bool is_set(double flag) { return flag != 0.0; }
 bool all_wheels_down(const RawFrame &raw)
 {
     return is_set(raw.gear_center_on_ground) && is_set(raw.gear_left_on_ground) && is_set(raw.gear_right_on_ground);
+}
+
+bool any_wheel_down(const RawFrame &raw)
+{
+    return is_set(raw.gear_center_on_ground) || is_set(raw.gear_left_on_ground) || is_set(raw.gear_right_on_ground);
 }
 
 // Skid helicopters may not map their skids to gear indices at all; then the first ground
@@ -72,8 +77,10 @@ domain::FrameInput to_frame(const RawFrame &raw, const SimState &state, bool is_
     frame.wind_from_true_deg = static_cast<float>(raw.wind_from_true_deg);
     frame.flap_handle_ratio  = static_cast<float>(raw.flap_handle_ratio);
     frame.flap_ratio         = static_cast<float>(raw.flap_ratio);
-    frame.gear_down          = raw.gear_extended_ratio >= 0.99;
-    frame.autopilot_engaged  = is_set(raw.autopilot_master);
+    // A wheel touching the runway is down whatever the extension reads: add-ons with their own
+    // gear system (FSReborn Phenom 300E) leave GEAR TOTAL PCT EXTENDED at 0.
+    frame.gear_down         = raw.gear_extended_ratio >= 0.99 || any_wheel_down(raw);
+    frame.autopilot_engaged = is_set(raw.autopilot_master);
     return frame;
 }
 

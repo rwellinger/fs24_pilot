@@ -1,7 +1,7 @@
 /*
  * Browser stand-ins for what the sim provides to a toolbar panel: TemplateElement,
  * checkAutoload and the CommBus listener. The fake module answers `panel_ready` with
- * hello + the selected sample landing, like wasm/src/module.cpp does.
+ * hello (with the stored text size) + the selected sample landing, like wasm/src/module.cpp does.
  */
 
 class TemplateElement extends HTMLElement {}
@@ -11,6 +11,7 @@ function checkAutoload() {}
 const fs24Preview = {
     listener: null,
     sample: null,
+    scalePercent: 100,
     deliver(type, payload) {
         const message = { protocol_version: FS24_PROTOCOL_VERSION, type, payload };
         this.listener.handlers[FS24_TO_PANEL_EVENT](JSON.stringify(message));
@@ -24,10 +25,14 @@ function RegisterCommBusListener(onReady) {
             this.handlers[event] = handler;
         },
         callWasm(event, raw) {
-            if (JSON.parse(raw).type !== "panel_ready") {
+            const message = JSON.parse(raw);
+            if (message.type === "set_ui_scale") {
+                fs24Preview.scalePercent = message.payload.percent;
+            }
+            if (message.type !== "panel_ready") {
                 return;
             }
-            fs24Preview.deliver("hello", { module_version: "0.0.0" });
+            fs24Preview.deliver("hello", { module_version: "0.0.0", ui_scale_percent: fs24Preview.scalePercent });
             if (fs24Preview.sample) {
                 fs24Preview.deliver("landing", fs24Preview.sample);
             }

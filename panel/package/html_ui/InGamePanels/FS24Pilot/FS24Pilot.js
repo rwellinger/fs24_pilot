@@ -13,9 +13,9 @@ class Fs24PilotPanel extends TemplateElement {
             super.connectedCallback();
         }
         this.moduleVersion = "";
-        const content = this.querySelector("#Content");
-        this.view = new Fs24LandingView(content);
-        this.scale = new Fs24PanelScale(content);
+        this.scalePercent = 100;
+        this.view = new Fs24LandingView(this.querySelector("#Content"));
+        this.view.onScaleStep((direction) => this.stepScale(direction));
         this.transport = new Fs24Transport(
             (type, payload) => this.onMessage(type, payload),
             (version) =>
@@ -27,18 +27,20 @@ class Fs24PilotPanel extends TemplateElement {
         });
     }
 
-    disconnectedCallback() {
-        if (super.disconnectedCallback) {
-            super.disconnectedCallback();
-        }
-        if (this.scale) {
-            this.scale.stop();
-        }
+    // The module stores the size, so it is back the next time the panel opens.
+    stepScale(direction) {
+        this.scalePercent = fs24StepScale(this.scalePercent, direction);
+        this.view.showScale(this.scalePercent);
+        this.transport.send("set_ui_scale", { percent: this.scalePercent });
     }
 
     onMessage(type, payload) {
         if (type === "hello") {
             this.moduleVersion = payload.module_version;
+            if (payload.ui_scale_percent) {
+                this.scalePercent = payload.ui_scale_percent;
+                this.view.showScale(this.scalePercent);
+            }
             this.view.showStatus("connected");
             this.view.showModule(this.moduleVersion, "");
         } else if (type === "landing") {

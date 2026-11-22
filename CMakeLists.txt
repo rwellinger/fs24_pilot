@@ -27,8 +27,9 @@ endif()
 
 # ── SDK-free adapter parts (mappings, built-in data), unit-tested on the host ─────
 # Convention: adapter sources that include no SDK header are named *_mapping.cpp or live
-# in adapters/profiles/; everything else in src/adapters/ is compiled by wasm/build.sh only.
-file(GLOB FS24_PURE_ADAPTER_SOURCES CONFIGURE_DEPENDS src/adapters/*/*_mapping.cpp src/adapters/profiles/*.cpp)
+# in adapters/profiles/ or adapters/storage/ (plain stdio); everything else in src/adapters/ is compiled by wasm/build.sh only.
+file(GLOB FS24_PURE_ADAPTER_SOURCES CONFIGURE_DEPENDS src/adapters/*/*_mapping.cpp src/adapters/profiles/*.cpp
+     src/adapters/storage/*.cpp)
 add_library(fs24_adapters_pure STATIC ${FS24_PURE_ADAPTER_SOURCES})
 target_link_libraries(fs24_adapters_pure PUBLIC fs24_core)
 target_compile_options(fs24_adapters_pure PRIVATE ${FS24_WARNINGS} -fno-exceptions)

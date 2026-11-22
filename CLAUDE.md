@@ -32,7 +32,7 @@ The dependency rule points inward. FS24/SDK updates must only touch adapters.
 
 - The host CMake build never sees the SDK → an SDK include in domain/application fails the build. Keep it that way.
 - **SimVar names and units exist only in `src/adapters/simvars/`** (anti-corruption layer). Domain types use SI-ish units with explicit names (`fpm`, `kts`, `m`).
-- SDK-free adapter parts (`*_mapping.cpp`, `adapters/profiles/`, header-only adapters without SDK includes) are built and unit-tested on the host too; everything else in `src/adapters/` is compiled by `wasm/build.sh` only.
+- SDK-free adapter parts (`*_mapping.cpp`, `adapters/profiles/`, `adapters/storage/` (plain stdio), header-only adapters without SDK includes) are built and unit-tested on the host too; everything else in `src/adapters/` is compiled by `wasm/build.sh` only.
 - The SDK's WASM libc++ has no `std::ranges` algorithms — use the classic ones.
 - Ports (pure virtual interfaces in `application`) only where a second implementation is realistic: test fake or sim API change. No abstraction on spec.
 - Configuration (profiles, thresholds) is injected, no globals/singletons.
@@ -44,7 +44,7 @@ The dependency rule points inward. FS24/SDK updates must only touch adapters.
 - Host build: CMake + Catch2 amalgamated (`vendor/catch2`, BSL-1.0).
 - WASM build: `wasm/build.sh` — flags copied from fs24_streamdeck, compiles `wasm/src/module.cpp` plus every `src/**/*.cpp`.
 - Packaging: `scripts/build_package.py` (stdlib only) writes `manifest.json` + `layout.json`, no `fspackagetool`.
-- Panel: plain HTML/CSS/JS (Coherent GT), no framework, no bundler. Layers: `transport.js` → `view_model.js` (formatting only) → `landing_view.js` (DOM). Flexbox, no CSS grid; sizes in `em` of `#Content`, whose font size `panel_scale.js` derives from the panel width (drag the panel to scale it); no `?.`/`??` (older JS engine).
+- Panel: plain HTML/CSS/JS (Coherent GT), no framework, no bundler. Layers: `transport.js` → `view_model.js` (formatting only) → `landing_view.js` (DOM). Flexbox, no CSS grid; sizes in `em` of `#Content`, whose font size the A−/A+ buttons set (stored by the module; no auto-scaling from the panel width — the sim frame grows with the content, which fed back); no `?.`/`??` (older JS engine).
 - Python 3 is only a build tool (SDK fetch, packaging). No npm in this repo.
 
 ## Development Setup — the sim PC stays clean

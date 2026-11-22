@@ -22,13 +22,14 @@ The receiver drops messages with another `protocol_version`; the panel shows a m
 | type | payload | meaning |
 |---|---|---|
 | `panel_ready` | `{}` | panel opened; module answers with its current state |
+| `set_ui_scale` | `{ "percent": 150 }` | A−/A+ pressed; the module stores the text size (clamped to 50–400) |
 
 ### module → panel
 
 | type | payload | meaning |
 |---|---|---|
-| `hello` | `{ "module_version": "0.4.0" }` | answer to `panel_ready` |
-| `landing` | see below | a landing was completed; also sent after `hello` when one exists |
+| `hello` | `{ "module_version": "0.4.5", "ui_scale_percent": 150 }` | answer to `panel_ready`; the panel applies the stored text size |
+| `landing` | see below | a landing was completed; also sent after `hello` when one exists, including the last one before a sim restart |
 
 ### `landing` payload (M04)
 

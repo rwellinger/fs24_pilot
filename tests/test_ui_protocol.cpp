@@ -35,3 +35,22 @@ TEST_CASE("message_type is empty for malformed messages")
     CHECK(proto::message_type(R"({"payload":{}})").empty());
     CHECK(proto::message_type(R"({"type":)").empty());
 }
+
+TEST_CASE("int_field reads an integer field")
+{
+    CHECK(proto::int_field(R"({"type":"set_ui_scale","payload":{"percent":150}})", "percent") == 150);
+    CHECK(proto::int_field(R"({ "percent" : -20 })", "percent") == -20);
+}
+
+TEST_CASE("int_field is empty for missing or non-integer fields")
+{
+    CHECK_FALSE(proto::int_field(R"({"payload":{}})", "percent"));
+    CHECK_FALSE(proto::int_field(R"({"percent":"big"})", "percent"));
+    CHECK_FALSE(proto::int_field(R"({"percent":1.5})", "percent"));
+    CHECK_FALSE(proto::int_field(R"({"percent":)", "percent"));
+}
+
+TEST_CASE("hello payload carries version and panel scale")
+{
+    CHECK(proto::hello_payload("0.5.0", 150) == R"({"module_version":"0.5.0","ui_scale_percent":150})");
+}

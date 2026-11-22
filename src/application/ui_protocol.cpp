@@ -9,7 +9,9 @@
 #include "application/ui_protocol.hpp"
 
 #include <array>
+#include <charconv>
 #include <cstdio>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -97,6 +99,40 @@ std::string message_type(std::string_view message_json)
         return {};
     }
     return std::string(message_json.substr(open + 1, close - open - 1));
+}
+
+std::optional<int> int_field(std::string_view json, std::string_view key)
+{
+    const std::string quoted  = json_string(key);
+    const auto        key_pos = json.find(quoted);
+    if (key_pos == std::string_view::npos)
+    {
+        return std::nullopt;
+    }
+    auto pos = json.find(':', key_pos + quoted.size());
+    if (pos == std::string_view::npos)
+    {
+        return std::nullopt;
+    }
+    pos = json.find_first_not_of(" \t\r\n", pos + 1);
+    if (pos == std::string_view::npos)
+    {
+        return std::nullopt;
+    }
+    int        value        = 0;
+    const auto end          = json.data() + json.size();
+    const auto [ptr, error] = std::from_chars(json.data() + pos, end, value);
+    if (error != std::errc{} || (ptr != end && *ptr == '.'))
+    {
+        return std::nullopt;
+    }
+    return value;
+}
+
+std::string hello_payload(std::string_view module_version, int ui_scale_percent)
+{
+    return "{\"module_version\":" + json_string(module_version) +
+           ",\"ui_scale_percent\":" + std::to_string(ui_scale_percent) + "}";
 }
 
 } // namespace fs24::application::ui_protocol

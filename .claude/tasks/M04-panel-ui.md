@@ -27,7 +27,9 @@ History list (M07), settings UI.
 
 - Sim check 0.4.1: renders as in the preview. Bug found: "GEAR NOT DOWN" on the FSReborn Phenom — its gear system leaves `GEAR TOTAL PCT EXTENDED` at 0 → 0.4.3 treats the gear as down when a wheel touches the runway.
 
-- Scaling (user request, large TV): content scales with the panel width (`panel_scale.js`, all CSS sizes in em). No size/position settings: the sim remembers panel size and position per panel, and no API places a toolbar panel (`docs/research/panel.md`).
+- Scaling (user request, large TV): all CSS sizes in em of `#Content`; the A−/A+ buttons in the footer step the text size (50–400 %). Auto-scaling from the panel width (0.4.4) failed in the sim: the frame grows with the content, so every step widened the panel and scaled again.
+- Persistence (pulled forward from M07): the module stores the text size and the last landing payload in `\work` (`adapters/storage/panel_state_store`), so both survive a sim restart. The M07 history replaces the last-landing file.
+- Panel position: the sim does not reliably keep it; the XML defaults decide where the panel opens (rebuild of the `.spb` needed to change them).
 
 ## Acceptance criteria
 

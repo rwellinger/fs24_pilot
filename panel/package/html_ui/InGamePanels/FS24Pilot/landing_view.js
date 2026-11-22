@@ -7,6 +7,7 @@
 // View: renders a landing view model into the panel. Builds its own DOM inside `root`, so
 // the panel HTML and the dev preview share one structure.
 
+const FS24_BASE_FONT_VH = 1.7; // text size at 100 %, as in FS24Pilot.css
 const FS24_SVG_NS = "http://www.w3.org/2000/svg";
 const FS24_RUNWAY_W = 400;
 const FS24_RUNWAY_H = 46;
@@ -47,13 +48,29 @@ class Fs24LandingView {
 
         this.footer = fs24Element("div", "footer");
         this.status = fs24Element("span", "status", "waiting for module…");
+        this.scaleButtons = fs24Element("span", "scale-buttons");
+        this.smaller = fs24Element("span", "scale-button", "A−");
+        this.bigger = fs24Element("span", "scale-button", "A+");
+        this.scaleButtons.appendChild(this.smaller);
+        this.scaleButtons.appendChild(this.bigger);
         this.module = fs24Element("span", "module");
-        this.footer.appendChild(this.status);
-        this.footer.appendChild(this.module);
+        [this.status, this.scaleButtons, this.module].forEach((part) => this.footer.appendChild(part));
 
+        this.root = root;
         root.appendChild(this.card);
         root.appendChild(this.footer);
         this.showEmpty();
+    }
+
+    // `onStep(direction)` is called with +1 for A+ and −1 for A−.
+    onScaleStep(onStep) {
+        this.smaller.addEventListener("click", () => onStep(-1));
+        this.bigger.addEventListener("click", () => onStep(1));
+    }
+
+    // Every size in FS24Pilot.css is in em of the root, so its font size scales everything.
+    showScale(percent) {
+        this.root.style.fontSize = `${(FS24_BASE_FONT_VH * percent) / 100}vh`;
     }
 
     showStatus(text) {

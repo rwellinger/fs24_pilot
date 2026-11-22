@@ -98,3 +98,15 @@ function fs24LandingViewModel(landing) {
         profile: landing.profile,
     };
 }
+
+// Text size steps of the A−/A+ buttons, in percent of the base size.
+const FS24_SCALE_STEPS = [50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400];
+
+// The next step bigger (+1) or smaller (−1) than `percent`; stays put at the ends.
+function fs24StepScale(percent, direction) {
+    const candidates = FS24_SCALE_STEPS.filter((step) => (direction > 0 ? step > percent : step < percent));
+    if (candidates.length === 0) {
+        return percent;
+    }
+    return direction > 0 ? candidates[0] : candidates[candidates.length - 1];
+}

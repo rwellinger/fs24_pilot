@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -26,5 +27,12 @@ std::string envelope(std::string_view type, std::string_view payload_json);
 
 // Extracts "type" from a panel message; empty when absent or malformed.
 std::string message_type(std::string_view message_json);
+
+// Reads the first integer field `key` anywhere in `json`; empty when absent or not a number.
+// Enough for the flat messages and files this module reads.
+std::optional<int> int_field(std::string_view json, std::string_view key);
+
+// Payload of the "hello" message: module version and the stored panel settings.
+std::string hello_payload(std::string_view module_version, int ui_scale_percent);
 
 } // namespace fs24::application::ui_protocol

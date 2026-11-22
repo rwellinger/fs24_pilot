@@ -8,7 +8,7 @@ CLANG_FORMAT := $(LLVM_BIN)clang-format
 CLANG_TIDY   := $(LLVM_BIN)clang-tidy
 PYTHON      ?= $(shell command -v python3 || command -v python)
 CXX_FILES    = $(shell find src tests wasm/src -name '*.cpp' -o -name '*.hpp' 2>/dev/null)
-TIDY_FILES   = $(shell find src/domain src/application src/adapters/profiles -name '*.cpp' 2>/dev/null; find src/adapters -name '*_mapping.cpp' 2>/dev/null)
+TIDY_FILES   = $(shell find src/domain src/application src/adapters/profiles src/adapters/storage -name '*.cpp' 2>/dev/null; find src/adapters -name '*_mapping.cpp' 2>/dev/null)
 
 .PHONY: help sdk host test format format-check tidy check wasm package preview clean gh-build cleanup_builds cleanup_branches
 

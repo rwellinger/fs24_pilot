@@ -24,10 +24,11 @@
 #include "adapters/simvars/frame_mapping.hpp"
 #include "adapters/simvars/simconnect_session.hpp"
 #include "adapters/simvars/touchdown_cross_check.hpp"
+#include "adapters/storage/last_landing_recorder.hpp"
 #include "adapters/storage/memory_landing_repository.hpp"
+#include "adapters/storage/panel_state_store.hpp"
 #include "adapters/ui_bus/commbus_channel.hpp"
 #include "adapters/ui_bus/commbus_result_publisher.hpp"
-#include "application/landing_message.hpp"
 #include "application/landing_monitor.hpp"
 #include "application/ui_protocol.hpp"
 
@@ -42,14 +43,16 @@ namespace proto = fs24::application::ui_protocol;
 using namespace fs24::adapters;
 
 constexpr std::size_t LANDINGS_KEPT = 20;
+// The package's persistent work folder (MSFS maps it per package).
+constexpr const char *WORK_DIR = "\\work\\";
 
 class Module
 {
   public:
     Module()
         : channel_([this](std::string_view message) { on_panel_message(message); }), publisher_(channel_),
-          repository_(LANDINGS_KEPT),
-          cross_check_([this]() -> const simvars::RawFrame & { return last_frame_; }, publisher_, logger_),
+          panel_state_(WORK_DIR, logger_), recorder_(panel_state_, publisher_), repository_(LANDINGS_KEPT),
+          cross_check_([this]() -> const simvars::RawFrame & { return last_frame_; }, recorder_, logger_),
           monitor_(fs24::domain::ProfileResolver(profiles::builtin_catalog()),
                    {aircraft_, runways_, repository_, cross_check_, logger_}),
           session_({.on_frame = [this](const simvars::RawFrame &raw, const simvars::SimState &state)
@@ -58,7 +61,11 @@ class Module
     {
     }
 
-    bool start() { return session_.open(); }
+    bool start()
+    {
+        panel_state_.load();
+        return session_.open();
+    }
 
   private:
     void on_frame(const simvars::RawFrame &raw, const simvars::SimState &state)
@@ -75,21 +82,35 @@ class Module
 
     void on_panel_message(std::string_view message)
     {
-        if (proto::message_type(message) != "panel_ready")
+        const std::string type = proto::message_type(message);
+        if (type == "panel_ready")
         {
-            return;
+            answer_panel_ready();
         }
-        channel_.send_to_panel(
-            proto::envelope("hello", "{\"module_version\":" + proto::json_string(FS24_PILOT_VERSION) + "}"));
-        if (const auto latest = repository_.latest())
+        else if (type == "set_ui_scale")
         {
-            channel_.send_to_panel(proto::envelope("landing", proto::landing_payload(*latest)));
+            if (const auto percent = proto::int_field(message, "percent"))
+            {
+                panel_state_.set_ui_scale_percent(*percent);
+            }
+        }
+    }
+
+    void answer_panel_ready()
+    {
+        channel_.send_to_panel(
+            proto::envelope("hello", proto::hello_payload(FS24_PILOT_VERSION, panel_state_.ui_scale_percent())));
+        if (const auto &latest = panel_state_.last_landing_payload())
+        {
+            channel_.send_to_panel(proto::envelope("landing", *latest));
         }
     }
 
     console::ConsoleLogger            logger_;
     ui_bus::CommBusChannel            channel_;
     ui_bus::CommBusResultPublisher    publisher_;
+    storage::PanelStateStore          panel_state_;
+    storage::LastLandingRecorder      recorder_;
     storage::MemoryLandingRepository  repository_;
     facilities::NoRunwayData          runways_;
     simvars::CachedAircraftInfo       aircraft_;

@@ -51,7 +51,7 @@ Design consequence (fits the architecture anyway):
 
 ## 5. Spike verification (sim PC, 2026-11-19, module 0.1.2)
 
-- [x] Toolbar icon visible, panel opens. The first open was tiny in the bottom-right corner; with `content-fit="true"` the frame snapped back on resize → `content-fit="false"` (0.1.2). The sim remembers position and size per panel.
+- [x] Toolbar icon visible, panel opens. The first open was tiny in the bottom-right corner; with `content-fit="true"` the frame snapped back on resize → `content-fit="false"` (0.1.2). Observed in M04: the sim does **not** reliably keep position and size across restarts; the XML defaults (`defaultTop`/`defaultRight`/`defaultWidth`/`defaultHeight`) decide where it opens.
 - [x] Panel shows `module answered`, `module: 0.1.2`, ticks counting up every second, last 5 messages in the log.
 - [x] State lives in the module: on open the panel showed tick 77 (seconds since module start), not 0; close + reopen continues the count (confirmed by the user).
 - [ ] Console line `panel -> module: panel_ready` — not checked explicitly; implied by the `hello` answer, which is only sent on `panel_ready`.

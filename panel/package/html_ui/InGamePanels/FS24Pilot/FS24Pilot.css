@@ -1,7 +1,7 @@
 /*
  * Layout of the xp_pilot landing popup. Flexbox only (Coherent GT's CSS grid support is
- * partial). Every size is in em of #Content, whose font size panel_scale.js derives from the
- * panel width: dragging the panel bigger scales the whole content.
+ * partial). Every size is in em of #Content, whose font size the A−/A+ buttons set
+ * (landing_view.js showScale): one value scales the whole content.
  * Grade colours: 0 BUTTER, 1 GREAT, 2 ACCEPTABLE, 3 HARD, 4 WASTED.
  */
 
@@ -13,12 +13,16 @@
     height: 100%;
     overflow: hidden;
     padding: 0.706em;
-    font-size: 1.7vh; /* until panel_scale.js sets it from the panel width */
+    font-size: 1.7vh; /* 100 %, FS24_BASE_FONT_VH in landing_view.js */
     color: #ebeffa;
     background-color: #0f1320;
 }
 
+/* The card gives way when the text outgrows the panel; the footer with A−/A+ always stays. */
 .card {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow: hidden;
     box-sizing: border-box;
     padding: 0.765em 0.941em;
     border: 0.118em solid #5c6577;
@@ -66,8 +70,10 @@
 }
 
 .metric-label {
+    overflow: hidden;
     font-size: 0.765em;
     white-space: nowrap;
+    text-overflow: ellipsis;
     color: #8f9bb2;
 }
 
@@ -142,11 +148,26 @@
 }
 
 .footer {
+    flex-shrink: 0;
     display: flex;
+    align-items: center;
     justify-content: space-between;
     margin-top: 0.615em;
     font-size: 0.765em;
     color: #6f7b92;
+}
+
+.scale-button {
+    margin: 0 0.25em;
+    padding: 0.1em 0.6em;
+    border: 0.08em solid #5c6577;
+    border-radius: 0.3em;
+    color: #ebeffa;
+    cursor: pointer;
+}
+
+.scale-button:hover {
+    background-color: rgba(92, 101, 119, 0.4);
 }
 
 /* ── grade colours ───────────────────────────────────────────────────────────── */

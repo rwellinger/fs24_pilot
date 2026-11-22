@@ -1,4 +1,4 @@
-/* Preview controls: one button per sample landing, ?sample=<name> for the start state. */
+/* Preview controls: one button per sample landing, ?sample=<name> for the start state, &scale=<percent> for the stored text size. */
 
 (function () {
     const picker = document.getElementById("Picker");
@@ -17,6 +17,10 @@
 
     const start = new URLSearchParams(location.search).get("sample");
     fs24Preview.sample = start ? FS24_SAMPLES[start] : FS24_SAMPLES.c172_great;
+    const scale = new URLSearchParams(location.search).get("scale");
+    if (scale) {
+        fs24Preview.scalePercent = Number(scale);
+    }
     const width = new URLSearchParams(location.search).get("width");
     if (width) {
         document.getElementById("Frame").style.width = `${width}px`;

@@ -11,8 +11,8 @@
         minHeight="12"
         defaultWidth="28"
         defaultHeight="30"
-        defaultTop="33"
-        defaultRight="2"
+        defaultTop="3"
+        defaultLeft="2"
         icon="ICON_TOOLBAR_FS24_PILOT"
         buttonVisible="true"
     >

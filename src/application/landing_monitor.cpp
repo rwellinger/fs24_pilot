@@ -23,18 +23,47 @@ namespace fs24::application
 namespace
 {
 
+std::string placement(const domain::Landing &landing)
+{
+    std::array<char, 120> buf{};
+    if (landing.runway)
+    {
+        const domain::RunwayFix &fix = *landing.runway;
+        std::snprintf(buf.data(), buf.size(), "%s runway %s, %.0f m past threshold, %+.1f m off centerline",
+                      landing.airport_ident.c_str(), fix.runway_ident.c_str(),
+                      static_cast<double>(fix.distance_from_thr_m), static_cast<double>(fix.centerline_offset_m));
+    }
+    else if (landing.off_field)
+    {
+        std::snprintf(buf.data(), buf.size(), "off-field (%.0f m from %s)",
+                      static_cast<double>(landing.distance_to_surface_m),
+                      landing.airport_ident.empty() ? "-" : landing.airport_ident.c_str());
+    }
+    else
+    {
+        std::snprintf(buf.data(), buf.size(), "%s, no runway",
+                      landing.airport_ident.empty() ? "airport unknown" : landing.airport_ident.c_str());
+    }
+    return buf.data();
+}
+
 std::string summary(const domain::Landing &landing)
 {
-    std::array<char, 240> buf{};
+    std::array<char, 360> buf{};
     std::snprintf(buf.data(), buf.size(),
-                  "landing: %s %.0f fpm %.2f G, %d bounce(s), wind %.0f kts (head %+.0f, cross %+.0f), profile %s, "
-                  "runway %s",
+                  "landing: %s %.0f fpm %.2f G, %d bounce(s), wind %.0f kts (head %+.0f, cross %+.0f), profile %s, %s",
                   std::string(domain::label(landing.grade)).c_str(), static_cast<double>(landing.descent_fpm),
                   static_cast<double>(landing.g_force), landing.bounce_count,
                   static_cast<double>(landing.wind_speed_kts), static_cast<double>(landing.wind.headwind_kts),
                   static_cast<double>(landing.wind.crosswind_kts), landing.profile_name.c_str(),
-                  landing.runway ? landing.runway->runway_ident.c_str() : "-");
+                  placement(landing).c_str());
     return buf.data();
+}
+
+bool same_placement(const domain::Landing &a, const domain::Landing &b)
+{
+    return a.airport_ident == b.airport_ident && a.off_field == b.off_field &&
+           a.distance_to_surface_m == b.distance_to_surface_m && a.runway.has_value() == b.runway.has_value();
 }
 
 } // namespace
@@ -97,10 +126,43 @@ void LandingMonitor::finish(domain::Landing landing)
 {
     landing.profile_name = profile_.name;
     rate(landing);
-    place(landing);
+    const bool placed = place(landing, false);
     ports_.repository.store(landing);
     ports_.publisher.publish_landing(landing);
     ports_.logger.info(summary(landing));
+    unplaced_.reset();
+    if (!placed)
+    {
+        // The prefetch may have missed the field (data still loading, or another airport
+        // than the one ahead at 2000 ft): look around the touchdown point itself.
+        unplaced_ = std::move(landing);
+        ports_.runways.prefetch_near(unplaced_->latitude_deg, unplaced_->longitude_deg);
+    }
+}
+
+void LandingMonitor::on_runways_arrived()
+{
+    if (!unplaced_)
+    {
+        return;
+    }
+    const bool      lookup_final = !ports_.runways.lookup_pending();
+    domain::Landing updated      = *unplaced_;
+    const bool      placed       = place(updated, lookup_final);
+    if (!same_placement(updated, *unplaced_))
+    {
+        ports_.repository.replace_latest(updated);
+        ports_.publisher.publish_landing(updated);
+        ports_.logger.info("placed late: " + placement(updated));
+    }
+    if (placed || lookup_final)
+    {
+        unplaced_.reset();
+    }
+    else
+    {
+        unplaced_ = std::move(updated);
+    }
 }
 
 void LandingMonitor::rate(domain::Landing &landing) const
@@ -121,21 +183,28 @@ void LandingMonitor::rate(domain::Landing &landing) const
     landing.criteria            = rating.criteria;
 }
 
-void LandingMonitor::place(domain::Landing &landing) const
+// True when the touchdown lies on a known field. Without any airport data the landing
+// counts as off-field only once no lookup is outstanding any more.
+bool LandingMonitor::place(domain::Landing &landing, bool lookup_final) const
 {
+    namespace geometry                      = domain::runway_geometry;
     const domain::AirportSurfaces *surfaces = ports_.runways.surfaces_near(landing.latitude_deg, landing.longitude_deg);
     if (surfaces == nullptr)
     {
-        return;
+        landing.off_field = lookup_final;
+        return false;
     }
     landing.airport_ident = surfaces->ident;
     landing.distance_to_surface_m =
-        domain::runway_geometry::distance_to_nearest_surface_m(*surfaces, landing.latitude_deg, landing.longitude_deg);
-    if (!landing.is_rotorcraft)
+        geometry::distance_to_nearest_surface_m(*surfaces, landing.latitude_deg, landing.longitude_deg);
+    landing.off_field = geometry::is_off_field(landing.distance_to_surface_m);
+    landing.runway.reset();
+    if (!landing.is_rotorcraft && !landing.off_field)
     {
-        landing.runway = domain::runway_geometry::locate_touchdown(surfaces->runways, landing.latitude_deg,
-                                                                   landing.longitude_deg, landing.heading_true_deg);
+        landing.runway = geometry::locate_touchdown(surfaces->runways, landing.latitude_deg, landing.longitude_deg,
+                                                    landing.heading_true_deg);
     }
+    return !landing.off_field;
 }
 
 } // namespace fs24::application

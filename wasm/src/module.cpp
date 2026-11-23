@@ -18,7 +18,7 @@
 #include <string_view>
 
 #include "adapters/console/console_logger.hpp"
-#include "adapters/facilities/no_runway_data.hpp"
+#include "adapters/facilities/simconnect_runway_provider.hpp"
 #include "adapters/profiles/builtin_catalog.hpp"
 #include "adapters/simvars/cached_aircraft_info.hpp"
 #include "adapters/simvars/frame_mapping.hpp"
@@ -52,6 +52,7 @@ class Module
     Module()
         : channel_([this](std::string_view message) { on_panel_message(message); }), publisher_(channel_),
           panel_state_(WORK_DIR, logger_), recorder_(panel_state_, publisher_), repository_(LANDINGS_KEPT),
+          runways_(logger_, [this]() { monitor_.on_runways_arrived(); }),
           cross_check_([this]() -> const simvars::RawFrame & { return last_frame_; }, recorder_, logger_),
           monitor_(fs24::domain::ProfileResolver(profiles::builtin_catalog()),
                    {aircraft_, runways_, repository_, cross_check_, logger_}),
@@ -64,6 +65,10 @@ class Module
     bool start()
     {
         panel_state_.load();
+        if (!runways_.open())
+        {
+            logger_.info("landings are rated without runway placement");
+        }
         return session_.open();
     }
 
@@ -106,18 +111,18 @@ class Module
         }
     }
 
-    console::ConsoleLogger            logger_;
-    ui_bus::CommBusChannel            channel_;
-    ui_bus::CommBusResultPublisher    publisher_;
-    storage::PanelStateStore          panel_state_;
-    storage::LastLandingRecorder      recorder_;
-    storage::MemoryLandingRepository  repository_;
-    facilities::NoRunwayData          runways_;
-    simvars::CachedAircraftInfo       aircraft_;
-    simvars::RawFrame                 last_frame_{};
-    simvars::TouchdownCrossCheck      cross_check_;
-    fs24::application::LandingMonitor monitor_;
-    simvars::SimConnectSession        session_;
+    console::ConsoleLogger               logger_;
+    ui_bus::CommBusChannel               channel_;
+    ui_bus::CommBusResultPublisher       publisher_;
+    storage::PanelStateStore             panel_state_;
+    storage::LastLandingRecorder         recorder_;
+    storage::MemoryLandingRepository     repository_;
+    facilities::SimConnectRunwayProvider runways_;
+    simvars::CachedAircraftInfo          aircraft_;
+    simvars::RawFrame                    last_frame_{};
+    simvars::TouchdownCrossCheck         cross_check_;
+    fs24::application::LandingMonitor    monitor_;
+    simvars::SimConnectSession           session_;
 };
 
 std::unique_ptr<Module> g_module;

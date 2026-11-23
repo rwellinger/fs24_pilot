@@ -117,6 +117,7 @@ std::string landing_payload(const domain::Landing &landing)
         .add("autopilot_engaged", landing.autopilot_engaged)
         .add("airport", landing.airport_ident)
         .add("distance_to_surface_m", landing.distance_to_surface_m, 0)
+        .add("off_field", landing.off_field)
         .raw("runway", runway_json(landing))
         .str();
 }

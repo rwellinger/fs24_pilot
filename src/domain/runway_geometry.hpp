@@ -48,6 +48,16 @@ struct AirportSurfaces
 namespace runway_geometry
 {
 
+// Farther than this from every runway and helipad of the nearest airport is off-field.
+inline constexpr float OFF_FIELD_DISTANCE_M = 500.f;
+
+// `distance_to_surface_m` as returned by distance_to_nearest_surface_m; an airport without
+// surfaces counts as off-field.
+inline bool is_off_field(float distance_to_surface_m)
+{
+    return distance_to_surface_m < 0.f || distance_to_surface_m > OFF_FIELD_DISTANCE_M;
+}
+
 // Ground distance; equirectangular, meant for the area around an airport.
 float distance_m(double lat_a, double lon_a, double lat_b, double lon_b);
 

@@ -28,10 +28,10 @@ The receiver drops messages with another `protocol_version`; the panel shows a m
 
 | type | payload | meaning |
 |---|---|---|
-| `hello` | `{ "module_version": "0.4.5", "ui_scale_percent": 150 }` | answer to `panel_ready`; the panel applies the stored text size |
+| `hello` | `{ "module_version": "0.5.0", "ui_scale_percent": 150 }` | answer to `panel_ready`; the panel applies the stored text size |
 | `landing` | see below | a landing was completed; also sent after `hello` when one exists, including the last one before a sim restart |
 
-### `landing` payload (M04)
+### `landing` payload (M04, placement M05)
 
 ```json
 { "grade": "GREAT LANDING!", "grade_index": 1, "profile": "light_ga", "is_rotorcraft": false,
@@ -41,13 +41,14 @@ The receiver drops messages with another `protocol_version`; the panel shows a m
   "flare": "Very good flare", "headwind_kts": 5, "crosswind_kts": -3, "crosswind_side": "left",
   "wind_speed_kts": 6, "run_on": false,
   "flap_ratio": 1.00, "gear_down": true, "autopilot_engaged": false,
-  "airport": "", "distance_to_surface_m": -1,
-  "runway": null }
+  "airport": "LSZB", "distance_to_surface_m": 2, "off_field": false,
+  "runway": { "ident": "14", "distance_from_threshold_m": 245, "centerline_offset_m": 1.8, "length_m": 1530 } }
 ```
 
 - Grades are indices 0 (BUTTER) … 4 (WASTED); `grade_index` is the landing's grade and colours banner and border.
 - `criteria` grades each criterion on its own (the landing's grade is the worst), so the panel colours each metric by the grade it earned. `drift`, `bank`, `yaw_rate` are rotorcraft only; `drift` is `null` on a run-on landing (`run_on: true`, ground speed ≥ 15 kts). Fixed-wing `descent` is graded after the crosswind allowance.
 - `crosswind_kts` is positive from the right; `crosswind_side` spells it out.
-- `runway` is `{ "ident", "distance_from_threshold_m", "centerline_offset_m", "length_m" }` once M05 places landings.
+- Placement: `airport` is the airport whose runway or helipad is nearest to the touchdown (`""` when none is known), `distance_to_surface_m` the distance to that surface (−1 = unknown). `off_field` is true beyond 500 m, or when no airport is near at all. `runway` (fixed-wing only, `null` otherwise) is `{ "ident", "distance_from_threshold_m", "centerline_offset_m", "length_m" }`: measured from the displaced threshold, offset positive right of the centerline, length from the displaced threshold to the far end.
+- When the runway data arrives after the touchdown, the module sends the same landing again with the placement filled in; the panel simply re-renders the latest `landing`.
 
 Fields are only ever added within protocol version 1; renaming or removing one bumps it. M07 adds `history`.

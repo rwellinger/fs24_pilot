@@ -66,3 +66,13 @@ TEST_CASE("A placed landing carries its runway object", "[ui_protocol]")
     CHECK(json.find(R"("runway":{"ident":"14","distance_from_threshold_m":410,"centerline_offset_m":-2.5,)") !=
           std::string::npos);
 }
+
+TEST_CASE("An off-field landing says so next to the distance to the nearest surface", "[ui_protocol]")
+{
+    fs24::domain::Landing landing;
+    landing.airport_ident         = "LSZB";
+    landing.distance_to_surface_m = 1234.4f;
+    landing.off_field             = true;
+    const std::string json        = landing_payload(landing);
+    CHECK(json.find(R"("airport":"LSZB","distance_to_surface_m":1234,"off_field":true,)") != std::string::npos);
+}

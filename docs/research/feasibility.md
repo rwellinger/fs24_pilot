@@ -11,7 +11,7 @@ Feasible. The rating logic can be taken over largely unchanged; the sim adapter,
 | Core logic | high, ~1:1 | `landing_detector.*`, `flight_logger_logic.hpp` (rating 197–312, profile matching), `flight_state_machine.*`, `runway_geometry.hpp` are plain C++17 without SDK and covered by Catch2 tests. `FlightStateMachine::Environment` (`flight_state_machine.hpp:76–97`) is the seam to the sim |
 | WASM toolchain | proven | Same chain as fs24_streamdeck (Asobo LLVM on the Windows runner, `MSFS_WasmVersions.a`, script packaging) |
 | Sim data | high | All inputs exist as SimVars; MSFS even captures touchdown values itself (`PLANE TOUCHDOWN NORMAL VELOCITY`, `…PITCH DEGREES`, `…BANK DEGREES`) |
-| Runways | medium | No `apt.dat` / `XPLMFindNavAid`. Replacement: SimConnect Facilities API (airport + runways incl. displaced threshold), asynchronous |
+| Runways | implemented (M05), sim check pending | No `apt.dat` / `XPLMFindNavAid`. Replacement: SimConnect Facilities API (airport + runways incl. displaced threshold + helipads), asynchronous |
 | Persistence | high | File I/O in the package's `\work` folder from WASM |
 | UI | resolved (M01) | toolbar panel works; `.spb` built once in Dev Mode, see `panel.md` |
 

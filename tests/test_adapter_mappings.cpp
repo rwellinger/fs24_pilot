@@ -162,6 +162,11 @@ TEST_CASE("The memory repository keeps the newest landings up to its capacity", 
     }
     REQUIRE(repository.latest().has_value());
     CHECK(repository.latest()->bounce_count == 3);
+
+    fs24::domain::Landing placed_late;
+    placed_late.bounce_count = 30;
+    repository.replace_latest(placed_late);
+    CHECK(repository.latest()->bounce_count == 30);
 }
 
 TEST_CASE("Gear is down when extended or when a wheel touches the runway", "[simvars]")

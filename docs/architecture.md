@@ -50,6 +50,14 @@ Clean Architecture with three rings plus a composition root and the panel. Goal:
 - **Runway prefetch** also for rotorcraft (helipad distance); xp_pilot skipped it.
 - **Not ported:** flight logging, shutdown detection, user profile overrides (possible later milestone), VMC/IMC.
 
+## Decisions taken in M05
+
+- **Facilities adapter on its own SimConnect connection** (`fs24-pilot-facilities`), so `facilities` does not depend on `simvars`. Lookup: `RequestFacilitiesList_EX1` (the sim's airport cache around the aircraft) → the up to 6 nearest airports within 10 km of the lookup point → one `RequestFacilityData` per airport (airport, runways with both thresholds, helipads). Results are cached per airport for the session (32 airports).
+- **Runway geometry from the sim's representation:** the Facilities API gives a runway by its centre, heading and length (incl. displaced thresholds); `facility_mapping` derives both ends — the primary end lies half a length behind the centre on the runway heading. Byte layout and translation are SDK-free and host-tested; `simconnect_runway_provider` only moves messages.
+- **Airport choice:** the cached airport whose runway centerline or helipad is nearest to the touchdown, not the nearest airport reference point.
+- **Late placement:** a landing that is not on a known field at touchdown triggers a second lookup around the touchdown point. `LandingMonitor::on_runways_arrived` re-places it, replaces it in the repository and publishes it again. Without any airport data it becomes off-field only once no lookup is outstanding.
+- **Off-field:** more than 500 m from every runway and helipad of the chosen airport (`runway_geometry::is_off_field`). Off-field landings get no runway fix.
+
 ## Mapping from xp_pilot
 
 | xp_pilot | fs24_pilot |

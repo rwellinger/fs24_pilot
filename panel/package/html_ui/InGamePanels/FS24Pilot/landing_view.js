@@ -103,7 +103,7 @@ class Fs24LandingView {
         this.renderMetrics(model.rows);
         this.flare.textContent = model.flare;
         this.renderContext(model.context);
-        this.renderRunway(model.showRunway, model.runway);
+        this.renderRunway(model.runway, model.placementNote);
     }
 
     setGradeClass(gradeClass) {
@@ -135,13 +135,12 @@ class Fs24LandingView {
         });
     }
 
-    renderRunway(show, runway) {
+    renderRunway(runway, note) {
         this.runway.textContent = "";
-        if (!show) {
-            return;
-        }
         if (!runway) {
-            this.runway.appendChild(fs24Element("div", "runway-caption", "No runway data"));
+            if (note) {
+                this.runway.appendChild(fs24Element("div", `runway-caption ${note.tone}`.trim(), note.text));
+            }
             return;
         }
         this.runway.appendChild(fs24Element("div", "runway-title", runway.title));

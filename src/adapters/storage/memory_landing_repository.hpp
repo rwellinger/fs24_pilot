@@ -32,6 +32,14 @@ class MemoryLandingRepository final : public application::LandingRepository
         }
     }
 
+    void replace_latest(const domain::Landing &landing) override
+    {
+        if (!landings_.empty())
+        {
+            landings_.front() = landing;
+        }
+    }
+
     std::optional<domain::Landing> latest() const
     {
         return landings_.empty() ? std::nullopt : std::optional<domain::Landing>(landings_.front());

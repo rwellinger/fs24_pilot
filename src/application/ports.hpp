@@ -27,20 +27,23 @@ class AircraftInfoProvider
 };
 
 // Runway data is fetched asynchronously by the adapter: prefetch on the approach, read
-// what has arrived at touchdown.
+// what has arrived at touchdown. The adapter reports each finished lookup to
+// LandingMonitor::on_runways_arrived.
 class RunwayProvider
 {
   public:
     virtual ~RunwayProvider()                                                                             = default;
     virtual void                           prefetch_near(double latitude_deg, double longitude_deg)       = 0;
     virtual const domain::AirportSurfaces *surfaces_near(double latitude_deg, double longitude_deg) const = 0;
+    virtual bool                           lookup_pending() const                                         = 0;
 };
 
 class LandingRepository
 {
   public:
-    virtual ~LandingRepository()                       = default;
-    virtual void store(const domain::Landing &landing) = 0;
+    virtual ~LandingRepository()                                = default;
+    virtual void store(const domain::Landing &landing)          = 0;
+    virtual void replace_latest(const domain::Landing &landing) = 0; // a late runway placement
 };
 
 class ResultPublisher

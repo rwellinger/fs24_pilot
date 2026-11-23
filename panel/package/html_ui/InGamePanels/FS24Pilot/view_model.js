@@ -70,13 +70,13 @@ function fs24ContextParts(landing) {
     return parts;
 }
 
-function fs24RunwayModel(runway) {
+function fs24RunwayModel(airport, runway) {
     if (!runway) {
         return null;
     }
     const offset = runway.centerline_offset_m;
     return {
-        title: `RUNWAY ${runway.ident} — ${runway.length_m} m`,
+        title: `${airport} RUNWAY ${runway.ident} — ${runway.length_m} m`.trim(),
         lengthM: runway.length_m,
         alongRatio: Math.min(1, Math.max(0, runway.distance_from_threshold_m / runway.length_m)),
         offsetM: offset,
@@ -86,6 +86,24 @@ function fs24RunwayModel(runway) {
     };
 }
 
+function fs24DistanceText(meters) {
+    return meters >= 1000 ? `${(meters / 1000).toFixed(1)} km` : `${meters} m`;
+}
+
+// What the runway area says when there is no runway diagram to draw.
+function fs24PlacementNote(landing) {
+    if (landing.off_field) {
+        const text = landing.airport
+            ? `OFF-FIELD — ${fs24DistanceText(landing.distance_to_surface_m)} from ${landing.airport}`
+            : "OFF-FIELD — no airport nearby";
+        return { text: text, tone: FS24_WARNING };
+    }
+    if (landing.airport) {
+        return { text: landing.is_rotorcraft ? `At ${landing.airport}` : `At ${landing.airport}, not on a runway`, tone: "" };
+    }
+    return landing.is_rotorcraft ? null : { text: "No runway data", tone: "" };
+}
+
 function fs24LandingViewModel(landing) {
     return {
         grade: landing.grade,
@@ -93,8 +111,8 @@ function fs24LandingViewModel(landing) {
         rows: landing.is_rotorcraft ? fs24RotorcraftRows(landing) : fs24FixedWingRows(landing),
         flare: landing.is_rotorcraft ? "" : landing.flare,
         context: fs24ContextParts(landing),
-        showRunway: !landing.is_rotorcraft,
-        runway: fs24RunwayModel(landing.runway),
+        runway: fs24RunwayModel(landing.airport, landing.runway),
+        placementNote: landing.runway ? null : fs24PlacementNote(landing),
         profile: landing.profile,
     };
 }

@@ -69,6 +69,7 @@ struct Landing
     std::string              airport_ident;
     std::optional<RunwayFix> runway;
     float                    distance_to_surface_m = -1; // -1 = unknown
+    bool                     off_field             = false;
 };
 
 } // namespace fs24::domain

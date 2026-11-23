@@ -46,6 +46,17 @@ domain::AirportSurfaces lszb()
     return surfaces;
 }
 
+// RWY 14/32 laid through the touchdown point of test::Approach (46.9 / 7.5, heading 140):
+// threshold 14 about 600 m before it, 1800 m long.
+domain::AirportSurfaces field_under_touchdown()
+{
+    domain::AirportSurfaces surfaces;
+    surfaces.ident   = "TEST";
+    surfaces.runways = {domain::Runway{
+        {domain::RunwayEnd{"14", 46.90414, 7.49492, 0.f}, domain::RunwayEnd{"32", 46.89173, 7.51015, 0.f}}, 30.f}};
+    return surfaces;
+}
+
 struct Fixture
 {
     test::FakeAircraft          aircraft;
@@ -94,21 +105,91 @@ TEST_CASE("A landing is rated against the aircraft's profile, stored and publish
     CHECK(landing.profile_name == "test_ga");
     CHECK(landing.descent_fpm == Catch::Approx(-500.f).epsilon(0.02));
     CHECK(landing.grade == Grade::Hard);
-    CHECK(fixture.runways.prefetches == 1);
 }
 
-TEST_CASE("A landing near a known airport is placed on its surfaces", "[landing_monitor]")
+TEST_CASE("A landing on a known runway is placed on it", "[landing_monitor]")
 {
     Fixture fixture;
-    fixture.runways.surfaces     = lszb();
+    fixture.runways.surfaces     = field_under_touchdown();
     fixture.runways.has_surfaces = true;
     fixture.monitor.on_aircraft_loaded();
     fixture.fly_circuit();
 
     REQUIRE(fixture.publisher.published.size() == 1);
     const domain::Landing &landing = fixture.publisher.published.front();
+    CHECK(landing.airport_ident == "TEST");
+    CHECK_FALSE(landing.off_field);
+    REQUIRE(landing.runway.has_value());
+    CHECK(landing.runway->runway_ident == "14");
+    CHECK(landing.runway->distance_from_thr_m == Catch::Approx(600.f).margin(30.f));
+    CHECK(fixture.runways.prefetches == 1); // the approach prefetch only
+}
+
+TEST_CASE("A landing far from every surface is off-field and looked up again at the touchdown point",
+          "[landing_monitor]")
+{
+    Fixture fixture;
+    fixture.runways.surfaces     = lszb(); // about 1.5 km north of the touchdown
+    fixture.runways.has_surfaces = true;
+    fixture.monitor.on_aircraft_loaded();
+    fixture.fly_circuit();
+
+    const domain::Landing &landing = fixture.publisher.published.front();
     CHECK(landing.airport_ident == "LSZB");
-    CHECK(landing.distance_to_surface_m >= 0.f);
+    CHECK(landing.off_field);
+    CHECK(landing.distance_to_surface_m > domain::runway_geometry::OFF_FIELD_DISTANCE_M);
+    CHECK_FALSE(landing.runway.has_value());
+    CHECK(fixture.runways.prefetches == 2);
+    CHECK(fixture.runways.last_prefetch_latitude_deg == Catch::Approx(landing.latitude_deg));
+
+    fixture.monitor.on_runways_arrived(); // same data: nothing to correct
+    CHECK(fixture.publisher.published.size() == 1);
+}
+
+TEST_CASE("Runway data arriving after the touchdown places the stored landing and re-publishes it", "[landing_monitor]")
+{
+    Fixture fixture;
+    fixture.monitor.on_aircraft_loaded();
+    fixture.fly_circuit();
+    REQUIRE(fixture.publisher.published.size() == 1);
+    CHECK_FALSE(fixture.publisher.published.front().off_field); // not known yet
+    CHECK(fixture.runways.prefetches == 2);
+
+    fixture.runways.surfaces     = field_under_touchdown();
+    fixture.runways.has_surfaces = true;
+    fixture.monitor.on_runways_arrived();
+
+    REQUIRE(fixture.publisher.published.size() == 2);
+    CHECK(fixture.repository.replacements == 1);
+    CHECK(fixture.repository.stored.size() == 1);
+    const domain::Landing &placed = fixture.repository.stored.back();
+    REQUIRE(placed.runway.has_value());
+    CHECK(placed.runway->runway_ident == "14");
+    CHECK(placed.grade == Grade::Hard);
+    CHECK(fixture.logger.lines.back().find("placed late: TEST runway 14") == 0);
+
+    fixture.monitor.on_runways_arrived();
+    CHECK(fixture.publisher.published.size() == 2);
+}
+
+TEST_CASE("Without airport data the landing turns off-field once no lookup is outstanding", "[landing_monitor]")
+{
+    Fixture fixture;
+    fixture.monitor.on_aircraft_loaded();
+    fixture.fly_circuit();
+
+    fixture.runways.pending = true; // the approach lookup finished, the touchdown one has not
+    fixture.monitor.on_runways_arrived();
+    CHECK(fixture.publisher.published.size() == 1);
+
+    fixture.runways.pending = false;
+    fixture.monitor.on_runways_arrived();
+    REQUIRE(fixture.publisher.published.size() == 2);
+    CHECK(fixture.publisher.published.back().off_field);
+    CHECK(fixture.publisher.published.back().airport_ident.empty());
+
+    fixture.monitor.on_runways_arrived();
+    CHECK(fixture.publisher.published.size() == 2);
 }
 
 TEST_CASE("Inactive frames (pause, replay, slew) are ignored", "[landing_monitor]")

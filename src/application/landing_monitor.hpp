@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include "application/ports.hpp"
@@ -42,6 +43,9 @@ class LandingMonitor
 
     void on_frame(const domain::FrameInput &frame);
 
+    // A runway lookup finished: places the latest landing if it was not placed yet.
+    void on_runways_arrived();
+
     const domain::LandingProfile     &profile() const { return profile_; }
     const domain::FlightPhaseMachine &phases() const { return phases_; }
 
@@ -49,7 +53,7 @@ class LandingMonitor
     void prefetch_runways(const domain::FrameInput &frame);
     void finish(domain::Landing landing);
     void rate(domain::Landing &landing) const;
-    void place(domain::Landing &landing) const;
+    bool place(domain::Landing &landing, bool lookup_final) const;
 
     domain::ProfileResolver    resolver_;
     LandingMonitorPorts        ports_;
@@ -58,6 +62,8 @@ class LandingMonitor
     std::string                last_aircraft_line_;
     domain::FlightPhaseMachine phases_;
     bool                       runways_prefetched_ = false;
+    // The latest landing while a runway lookup for its touchdown point is outstanding.
+    std::optional<domain::Landing> unplaced_;
 };
 
 } // namespace fs24::application

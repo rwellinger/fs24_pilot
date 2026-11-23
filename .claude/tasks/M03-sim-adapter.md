@@ -53,9 +53,18 @@ Free flight, Dev Mode console open (filter `fs24-pilot`), toolbar panel open.
 2. Each landing logs `Airborne -> Landed`, `landing: <GRADE> <fpm> fpm <G> G …` and `cross-check: ours … sim …`. The panel shows the same in "last landing".
 3. Send the console lines for: 5× C172, 3× airliner, 1 provoked bounce, 1 touch-and-go, 1× H145, 1 landing with a pause on short final.
 
-## Acceptance criteria
+## Deferred to the pre-release sim session (user decision 2026-11-23)
 
-- [ ] 5 landings with the C172 and 3 with a jet (Phenom 300E instead of an airliner, user decision — the detection has no airliner-specific path): grade + fpm + G in the console; fpm within ±10 % of the sim's touchdown velocity (deviation documented).
+The remaining checks run in one sim session together with the FPS measurement, before the release (M08 gate). Why the pause test matters although only landings are recorded: inactive frames are dropped (`LandingMonitor::on_frame`), but float time, the 0.2 s lift threshold and the smoothing window use frame time deltas — if `E:SIMULATION TIME` keeps running in active pause (or the wall-clock fallback kicks in), the pause lands in one delta; a misread `Pause_EX1` flag would drop the touchdown frames; repositioning while paused jumps Airborne → on ground.
+
+1. FPS: WASM Debug window callback times during approach and touchdown.
+2. Active pause on short final for a few seconds, resume, land normally → plausible float time, no phantom bounce.
+3. Provoked bounce (C172, too fast / too steep) → bounce counted.
+4. Optional: reposition onto the ground while paused → no phantom landing.
+
+
+
+- [x] 5 landings with the C172 and 3 with a jet (Phenom 300E instead of an airliner, user decision — the detection has no airliner-specific path): grade + fpm + G in the console; fpm within ±10 % of the sim's touchdown velocity (deviation documented). — met by construction since 0.4.1: the rated fpm is the sim's own touchdown capture (Phenom −204 / −204); smoothed fallback 5–10 % softer (Kodiak/C172 data above). User judged the later landings fine; no further lines collected.
 - [ ] Bounce detected and counted on a provoked bounce.
 - [x] Touch-and-go yields two separate landings. — 0.3.1, C172: Landed → Airborne → Landed, two landing lines.
 - [x] H145 landing produces a rotorcraft rating. — 0.3.1: Idle → Airborne (rotorcraft) → Landed, BUTTER −25 fpm 1.07 G.

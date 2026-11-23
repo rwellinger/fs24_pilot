@@ -15,5 +15,6 @@ Versioned, downloadable release that a user installs by unzipping into Community
 
 ## Acceptance criteria
 
+- [ ] M03 deferred sim checks done (FPS, pause on short final, provoked bounce — `M03-sim-adapter.md`).
 - [ ] `v0.1.0` release exists with the zip.
 - [ ] Fresh install on the sim PC from the release zip works (final acceptance like a normal user).

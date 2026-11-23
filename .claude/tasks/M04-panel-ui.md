@@ -37,4 +37,4 @@ History list (M07), settings UI.
 - [x] After a landing the panel shows all metrics within 1 s. — 0.4.1, Phenom 300E (`testdata/Screenshot 2026-11-21 220902.png`).
 - [x] Rotorcraft landing shows the rotorcraft layout (0.4.5, Lama SA315B: VS, G / drift, bank / yaw rate, wind).
 - [x] Protocol version mismatch shows a clear message instead of garbage. — preview `?protocol=2`: banner PROTOCOL MISMATCH, sample landing dropped.
-- [x] Panel readable in VR/2D at default toolbar panel size (screenshot in the issue). — 2D verified (`testdata/`), VR not tested.
+- [x] Panel readable in 2D at default toolbar panel size (screenshot in the issue). — verified (`testdata/`). VR dropped from the criterion: the user has no VR headset; untested.

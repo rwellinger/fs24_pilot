@@ -12,8 +12,10 @@ const fs24Preview = {
     listener: null,
     sample: null,
     scalePercent: 100,
+    protocolVersion: null, // null: the panel's own; resolved on send because transport.js loads after this file
     deliver(type, payload) {
-        const message = { protocol_version: FS24_PROTOCOL_VERSION, type, payload };
+        const version = this.protocolVersion === null ? FS24_PROTOCOL_VERSION : this.protocolVersion;
+        const message = { protocol_version: version, type, payload };
         this.listener.handlers[FS24_TO_PANEL_EVENT](JSON.stringify(message));
     },
 };

@@ -18,13 +18,17 @@ class Fs24PilotPanel extends TemplateElement {
         this.view.onScaleStep((direction) => this.stepScale(direction));
         this.transport = new Fs24Transport(
             (type, payload) => this.onMessage(type, payload),
-            (version) =>
-                this.view.showStatus(`protocol mismatch: module v${version}, panel v${FS24_PROTOCOL_VERSION}`),
+            (version) => this.onProtocolMismatch(version),
         );
         this.transport.connect(() => {
             this.view.showStatus("asking module…");
             this.transport.send("panel_ready");
         });
+    }
+
+    onProtocolMismatch(moduleProtocol) {
+        this.view.showProtocolMismatch(moduleProtocol, FS24_PROTOCOL_VERSION);
+        this.view.showStatus("protocol mismatch");
     }
 
     // The module stores the size, so it is back the next time the panel opens.

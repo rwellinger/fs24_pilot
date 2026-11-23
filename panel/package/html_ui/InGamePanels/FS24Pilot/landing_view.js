@@ -90,6 +90,13 @@ class Fs24LandingView {
         this.runway.textContent = "";
     }
 
+    // Module and panel ship in one package, so a mismatch means a stale or mixed install.
+    showProtocolMismatch(moduleProtocol, panelProtocol) {
+        this.showEmpty();
+        this.gradeLabel.textContent = "PROTOCOL MISMATCH";
+        this.flare.textContent = `Module speaks protocol v${moduleProtocol}, panel v${panelProtocol}. Reinstall fs24-pilot.`;
+    }
+
     showLanding(model) {
         this.setGradeClass(model.gradeClass);
         this.gradeLabel.textContent = model.grade;

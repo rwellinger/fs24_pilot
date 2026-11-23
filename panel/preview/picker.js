@@ -1,4 +1,5 @@
-/* Preview controls: one button per sample landing, ?sample=<name> for the start state, &scale=<percent> for the stored text size. */
+/* Preview controls: one button per sample landing, ?sample=<name> for the start state, &scale=<percent> for the stored text size,
+   &protocol=<n> for a module speaking another protocol version. */
 
 (function () {
     const picker = document.getElementById("Picker");
@@ -20,6 +21,10 @@
     const scale = new URLSearchParams(location.search).get("scale");
     if (scale) {
         fs24Preview.scalePercent = Number(scale);
+    }
+    const protocol = new URLSearchParams(location.search).get("protocol");
+    if (protocol) {
+        fs24Preview.protocolVersion = Number(protocol);
     }
     const width = new URLSearchParams(location.search).get("width");
     if (width) {

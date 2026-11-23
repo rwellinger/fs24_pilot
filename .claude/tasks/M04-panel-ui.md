@@ -29,11 +29,12 @@ History list (M07), settings UI.
 
 - Scaling (user request, large TV): all CSS sizes in em of `#Content`; the A−/A+ buttons in the footer step the text size (50–400 %). Auto-scaling from the panel width (0.4.4) failed in the sim: the frame grows with the content, so every step widened the panel and scaled again.
 - Persistence (pulled forward from M07): the module stores the text size and the last landing payload in `\work` (`adapters/storage/panel_state_store`), so both survive a sim restart. The M07 history replaces the last-landing file.
-- Panel position: the sim does not reliably keep it; the XML defaults decide where the panel opens (rebuild of the `.spb` needed to change them). User's preferred spot from a 4096×2160 screenshot: panel content at x 84–584, y 67–604 px (top left, size as the default). XML set to `defaultTop="3" defaultLeft="2"` (was top 33 / right 2), size unchanged. Units are undocumented (forum: % of a virtual screen height; one report says `defaultTop` is ignored) — verify after the `.spb` rebuild.
+- Panel position: the sim does not reliably keep it; the XML defaults decide where the panel opens (rebuild of the `.spb` needed to change them). User's preferred spot from a 4096×2160 screenshot: panel content at x 84–584, y 67–604 px (top left, size as the default). XML set to `defaultTop="3" defaultLeft="2"` (was top 33 / right 2), size unchanged. Units are undocumented (forum: % of a virtual screen height; one report says `defaultTop` is ignored). Verified after the `.spb` rebuild (2026-11-23): the panel opens at the user's preferred spot.
+- Protocol mismatch: the banner reads PROTOCOL MISMATCH with both protocol versions and a reinstall hint; the transport keeps dropping messages of the other version, so no landing overwrites it. Preview: `?protocol=2` makes the fake module speak another version.
 
 ## Acceptance criteria
 
 - [x] After a landing the panel shows all metrics within 1 s. — 0.4.1, Phenom 300E (`testdata/Screenshot 2026-11-21 220902.png`).
 - [x] Rotorcraft landing shows the rotorcraft layout (0.4.5, Lama SA315B: VS, G / drift, bank / yaw rate, wind).
-- [ ] Protocol version mismatch shows a clear message instead of garbage.
+- [x] Protocol version mismatch shows a clear message instead of garbage. — preview `?protocol=2`: banner PROTOCOL MISMATCH, sample landing dropped.
 - [x] Panel readable in VR/2D at default toolbar panel size (screenshot in the issue). — 2D verified (`testdata/`), VR not tested.
